@@ -1,0 +1,7 @@
+*.xcbkptlist
+*.xcscheme
+*.plist
+*.DS_Store
+*.xcuserstate
+*.xcworkspacedata
+*.pbxproj
