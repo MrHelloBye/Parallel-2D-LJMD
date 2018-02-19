@@ -1,0 +1,21 @@
+
+
+#Make a copy of this Makefile and change the following three lines as needed
+#These should work for any standard linux system, and INCLUDES and LIBRARIES
+#probably unnecessary
+CC = gcc
+CXX = g++
+INCLUDES = #-I/usr/local/include -I/usr/include
+LIBRARIES = #-L/usr/local/lib -L/usr/lib 
+
+#Make sure all these libraries are installed or otherwise in your
+#include/linking path. dl, and m should come with most systems
+LINKING =  -ldl -lm -lglfw -lGLEW -lGL -lGLU
+
+all: main.cpp
+	$(CXX) main.cpp -o practice $(INCLUDES) $(LIBRARIES) $(LINKING)
+
+.PHONY : clean
+clean:
+	rm main
+

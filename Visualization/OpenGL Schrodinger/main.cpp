@@ -153,7 +153,7 @@ void circleFan(GLfloat *allCircleVertices, GLfloat x, GLfloat y,
 }
 
 void generateCircle(Circle &circle, GLfloat &&x, GLfloat &&y, GLfloat &&z,
-                    GLint &&numSides)
+                    GLfloat &&radius, GLint &&numSides)
 {
     circle.numVertices = numSides+2;
     GLfloat *circleVertices = new GLfloat[circle.numVertices*3];
