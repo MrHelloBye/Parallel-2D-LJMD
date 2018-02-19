@@ -17,7 +17,187 @@
 #include <stdio.h>
 
 
-void generateCircle(GLfloat*, GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOfSides);
+struct Circle
+{
+    GLuint points_vbo = 0;
+    GLuint vao = 0;
+    int numVertices = 2;
+    GLfloat radius = 1;
+};
+
+void circleFan(GLfloat*, GLfloat, GLfloat, GLfloat, GLfloat, GLint&&);
+void generateCircle(Circle&, GLfloat&&, GLfloat&&, GLfloat&&, GLfloat&&, GLint&&);
+void moveCircle(Circle&, GLfloat&&, GLfloat&&, GLfloat&&);
+void reshape(int, int);
+void check_GLSL_compile(GLuint shader);
+void check_GLSL_link(GLuint shader_program);
+void initShaders(GLuint&);
+
+int main()
+{
+    // start GL context and O/S window using the GLFW helper library
+    if (!glfwInit())
+    {
+        fprintf(stderr, "ERROR: could not start GLFW3\n");
+        return 1;
+    }
+    
+    // uncomment these lines if on Apple OS X
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    
+    GLFWwindow* window = glfwCreateWindow(500, 500, "Hello Triangle", NULL, NULL);
+    if (!window)
+        fprintf(stderr, "ERROR: could not open window with GLFW3\n");
+    
+    glfwMakeContextCurrent(window);
+    
+    //--------------------------------------------------------//
+    
+    // start GLEW extension handler
+    glewExperimental = GL_TRUE;
+    // Initialize GLEW, must be done after window creation
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
+        /* Problem: glewInit failed, something is seriously wrong. */
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+    }
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    
+    // get version info
+    const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
+    const GLubyte* version = glGetString(GL_VERSION); // version as a string
+    printf("Renderer: %s\n", renderer);
+    printf("OpenGL version supported %s\n", version);
+    
+    //--------------------------------------------------------//
+    
+    Circle test_circle;
+    test_circle.radius = 0.5;
+    generateCircle(test_circle, 0.25, 0.5, 0, 0.5, 100);
+    
+    //--------------------------------------------------------//
+    
+    GLuint shader_program = glCreateProgram();
+    initShaders(shader_program);
+    
+    
+    //Only render the front side of the face
+    //glEnable(GL_CULL_FACE); // cull face
+    //glCullFace(GL_BACK); // cull back face
+    //glFrontFace(GL_CW); // GL_CCW for counter clock-wise
+    
+    //glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    
+    
+    int width, height;
+    //Resize viewport to match window
+    glfwGetFramebufferSize(window, &width, &height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0f, width, height, 0.0f, 0.0f, 1.0f);
+    
+    //--------------------------------------------------------//
+    
+    //Draw in a loop
+    while(!glfwWindowShouldClose(window))
+    {
+        glfwGetFramebufferSize(window, &width, &height);
+        reshape(width, height);
+        
+        // wipe the drawing surface clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        //---Render OpenGL stuff---//
+        glUseProgram(shader_program);
+        
+        glBindVertexArray(test_circle.vao);
+        // draw points 0-3 from the currently bound VAO with current in-use shader
+        glDrawArrays(GL_TRIANGLE_FAN, 0, test_circle.numVertices);
+        
+        // update other events like input handling
+        glfwPollEvents();
+        
+        // put the stuff we've been drawing onto the display
+        glfwSwapBuffers(window);
+        
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+            glfwSetWindowShouldClose(window, 1);
+        }
+    }
+    
+    glfwTerminate();
+    return 0;
+}
+
+void circleFan(GLfloat *allCircleVertices, GLfloat x, GLfloat y,
+               GLfloat z, GLfloat radius, GLint &&numberOfSides)
+{
+    int numberOfVertices = numberOfSides + 2;
+    
+    GLfloat twoPi = 2.0f*M_PI;
+    
+    allCircleVertices[0] = x;
+    allCircleVertices[1] = y;
+    allCircleVertices[2] = z;
+    
+    for ( int i = 1; i < numberOfVertices; i++ )
+    {
+        allCircleVertices[i*3] = x + (radius * cos(i*twoPi/numberOfSides));
+        allCircleVertices[(i*3)+1] = y + ( radius * sin( i * twoPi / numberOfSides ) );
+        allCircleVertices[(i*3)+2] = z;
+    }
+}
+
+void generateCircle(Circle &circle, GLfloat &&x, GLfloat &&y, GLfloat &&z,
+                    GLint &&numSides)
+{
+    circle.numVertices = numSides+2;
+    GLfloat *circleVertices = new GLfloat[circle.numVertices*3];
+    circleFan(circleVertices, x, y, z, circle.radius, circle.numVertices-2);
+    
+    GLfloat *colors = new GLfloat[circle.numVertices*3];
+    for (int i = 0; i<circle.numVertices*3; i++)
+        colors[i] = 0.5;
+    
+    //Initialize vertex buffer object
+    glGenBuffers(1, &circle.points_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, circle.points_vbo);
+    glBufferData(GL_ARRAY_BUFFER, circle.numVertices*3*sizeof(GLfloat),
+                 circleVertices, GL_STATIC_DRAW);
+    
+    GLuint colors_vbo = 0;
+    glGenBuffers(1, &colors_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 3*circle.numVertices*sizeof(float), colors, GL_STATIC_DRAW);
+    
+    glGenVertexArrays(1, &circle.vao);
+    glBindVertexArray(circle.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, circle.points_vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+}
+
+void reshape(int w, int h)
+{
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    float aspect_ratio = (float)(w)/h;
+    if (w<=h)
+        gluOrtho2D(-1, 1, -1.0/aspect_ratio, 1.0*aspect_ratio);
+    else
+        gluOrtho2D(-1.0*aspect_ratio, 1.0*aspect_ratio, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
 
 void check_GLSL_compile(GLuint shader)
 {
@@ -51,97 +231,27 @@ void check_GLSL_link(GLuint shader_program)
     }
 }
 
-int main() {
-    // start GL context and O/S window using the GLFW helper library
-    if (!glfwInit()) {
-        fprintf(stderr, "ERROR: could not start GLFW3\n");
-        return 1;
-    }
-    
-    // uncomment these lines if on Apple OS X
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
-    GLFWwindow* window = glfwCreateWindow(2880, 1800, "Hello Triangle", NULL, NULL);
-    if (!window)
-        fprintf(stderr, "ERROR: could not open window with GLFW3\n");
-    
-    glfwMakeContextCurrent(window);
-    
-    // start GLEW extension handler
-    glewExperimental = GL_TRUE;
-    // Initialize GLEW, must be done after window creation
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-        /* Problem: glewInit failed, something is seriously wrong. */
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-    }
-    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    
-    // get version info
-    const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
-    const GLubyte* version = glGetString(GL_VERSION); // version as a string
-    printf("Renderer: %s\n", renderer);
-    printf("OpenGL version supported %s\n", version);
-    
-    int numberOfVertices = 100;
-    GLfloat *circleVertices = new GLfloat[numberOfVertices*3];
-    generateCircle(circleVertices, 0, 0, 0, 1, numberOfVertices-2);
-    
-    
-    GLfloat colours[] = {
-        1.0f, 0.0f,  0.0f,
-        0.0f, 1.0f,  0.0f,
-        0.0f, 0.0f,  1.0f
-    };
-    
-    
-    //Initialize vertex buffer object
-    GLuint points_vbo = 0;
-    glGenBuffers(1, &points_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-    glBufferData(GL_ARRAY_BUFFER, numberOfVertices*3*sizeof(GLfloat), circleVertices, GL_STATIC_DRAW);
-    
-    
-    GLuint colours_vbo = 0;
-    glGenBuffers(1, &colours_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, colours_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), colours, GL_STATIC_DRAW);
-    
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), NULL);
-    //glBindBuffer(GL_ARRAY_BUFFER, colours_vbo);
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    
-    glEnableVertexAttribArray(0);
-    //glEnableVertexAttribArray(1);
-    
+void initShaders(GLuint &shader_program)
+{
     //Define vertex shader (better to load from text file)
     const char* vertex_shader =
     "#version 400\n"
     "in vec3 vertex_position;"
-    //"in vec3 vertex_color;"
-    //"out vec3 color;"
+    "in vec3 vertex_color;"
+    "out vec3 color;"
     "void main() {"
-    //"  color = vertex_color;"
+    "  color = vertex_color;"
     "  gl_Position = vec4(vertex_position, 1.0);"
     "}";
     
     //Define fragment shader (for drawing surfaces)
     const char* fragment_shader =
     "#version 400\n"
-    //"in vec3 color;"
+    "in vec3 color;"
     "out vec4 frag_color;"
     "void main() {"
-    "  frag_color = vec4(0.5, 0.5, 0.5, 1.0);"
+    "  frag_color = vec4(color, 1.0);"
     "}";
-    
     
     //Compile shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -156,7 +266,6 @@ int main() {
     check_GLSL_compile(fs);
     
     //Link shaders into program
-    GLuint shader_program = glCreateProgram();
     glAttachShader(shader_program, vs);
     glAttachShader(shader_program, fs);
     
@@ -167,71 +276,4 @@ int main() {
     glLinkProgram(shader_program);
     
     check_GLSL_link(shader_program);
-    
-    //Only render the front side of the face
-    //glEnable(GL_CULL_FACE); // cull face
-    //glCullFace(GL_BACK); // cull back face
-    //glFrontFace(GL_CW); // GL_CCW for counter clock-wise
-    
-    //glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    
-    
-    //Draw in a loop
-    while(!glfwWindowShouldClose(window)) {
-        // wipe the drawing surface clear
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        //---Render OpenGL stuff---//
-        glUseProgram(shader_program);
-        
-        glBindVertexArray(vao);
-        // draw points 0-3 from the currently bound VAO with current in-use shader
-        glDrawArrays(GL_TRIANGLE_FAN, 0, numberOfVertices);
-        
-        // update other events like input handling
-        glfwPollEvents();
-        
-        // put the stuff we've been drawing onto the display
-        glfwSwapBuffers(window);
-        
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(window, 1);
-        }
-    }
-    
-    glfwTerminate();
-    return 0;
-}
-
-void generateCircle(GLfloat *allCircleVertices, GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOfSides)
-{
-    int numberOfVertices = numberOfSides + 2;
-    
-    GLfloat twoPi = 2.0f*M_PI;
-    
-    allCircleVertices[0] = x;
-    allCircleVertices[1] = y;
-    allCircleVertices[2] = z;
-    
-    for ( int i = 1; i < numberOfVertices; i++ )
-    {
-        allCircleVertices[i*3] = x + (radius * cos(i*twoPi/numberOfSides));
-        allCircleVertices[(i*3)+1] = y + ( radius * sin( i * twoPi / numberOfSides ) );
-        allCircleVertices[(i*3)+2] = z;
-    }
-    
-    /*
-    //Initialize vertex buffer object
-    GLuint points_vbo = 0;
-    glGenBuffers(1, &points_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 3*numberOfVertices*sizeof(GLfloat), allCircleVertices, GL_STATIC_DRAW);
-    
-    glEnableVertexAttribArray(0);
-    
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glVertexPointer( 3, GL_FLOAT, 0, allCircleVertices );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, numberOfVertices);
-    glDisableClientState( GL_VERTEX_ARRAY );
-     */
 }
