@@ -23,11 +23,12 @@ struct Circle
     GLuint vao = 0;
     int numVertices = 2;
     GLfloat radius = 1;
+    GLfloat *vertices;
 };
 
 void circleFan(GLfloat*, GLfloat, GLfloat, GLfloat, GLfloat, GLint&&);
-void generateCircle(Circle&, GLfloat&&, GLfloat&&, GLfloat&&, GLfloat&&, GLint&&);
-void moveCircle(Circle&, GLfloat&&, GLfloat&&, GLfloat&&);
+void generateCircle(Circle&, GLfloat &&x, GLfloat &&y, GLfloat &&z, GLint&&);
+void moveCircle(Circle&, GLfloat, GLfloat, GLfloat);
 void reshape(int, int);
 void check_GLSL_compile(GLuint shader);
 void check_GLSL_link(GLuint shader_program);
@@ -48,7 +49,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow* window = glfwCreateWindow(500, 500, "Hello Triangle", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(500, 500, "Particle Demo", NULL, NULL);
     if (!window)
         fprintf(stderr, "ERROR: could not open window with GLFW3\n");
     
@@ -75,9 +76,12 @@ int main()
     
     //--------------------------------------------------------//
     
-    Circle test_circle;
-    test_circle.radius = 0.5;
-    generateCircle(test_circle, 0.25, 0.5, 0, 0.5, 100);
+    Circle circle1;
+    circle1.radius = 0.2;
+    generateCircle(circle1, 0.25, 0.5, 0, 100);
+    Circle circle2;
+    circle2.radius = 0.2;
+    generateCircle(circle2, 0.25, 0.5, 0, 100);
     
     //--------------------------------------------------------//
     
@@ -102,27 +106,36 @@ int main()
     
     //--------------------------------------------------------//
     
+    GLfloat x1 = 0;
+    GLfloat x2 = -1;
+    
+    
+    glUseProgram(shader_program);
     //Draw in a loop
     while(!glfwWindowShouldClose(window))
     {
-        glfwGetFramebufferSize(window, &width, &height);
-        reshape(width, height);
-        
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        //---Render OpenGL stuff---//
-        glUseProgram(shader_program);
+        x1 += 0.01;
+        x2 -= 0.03;
+        if (x1 > 1) x1 = -1;
+        if (x2 < -1) x2 = 1;
+        moveCircle(circle1, x1, 0, 0);
+        moveCircle(circle2, x2, 0.5, 0);
         
-        glBindVertexArray(test_circle.vao);
-        // draw points 0-3 from the currently bound VAO with current in-use shader
-        glDrawArrays(GL_TRIANGLE_FAN, 0, test_circle.numVertices);
+        glBindVertexArray(circle1.vao);
+        // draw points from the currently bound VAO with current in-use shader
+        glDrawArrays(GL_TRIANGLE_FAN, 0, circle1.numVertices);
         
-        // update other events like input handling
-        glfwPollEvents();
+        glBindVertexArray(circle2.vao);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, circle2.numVertices);
         
         // put the stuff we've been drawing onto the display
         glfwSwapBuffers(window);
+        
+        // update other events like input handling
+        glfwPollEvents();
         
         if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             glfwSetWindowShouldClose(window, 1);
@@ -153,11 +166,11 @@ void circleFan(GLfloat *allCircleVertices, GLfloat x, GLfloat y,
 }
 
 void generateCircle(Circle &circle, GLfloat &&x, GLfloat &&y, GLfloat &&z,
-                    GLfloat &&radius, GLint &&numSides)
+                    GLint &&numSides)
 {
     circle.numVertices = numSides+2;
-    GLfloat *circleVertices = new GLfloat[circle.numVertices*3];
-    circleFan(circleVertices, x, y, z, circle.radius, circle.numVertices-2);
+    circle.vertices = new GLfloat[circle.numVertices*3];
+    circleFan(circle.vertices, x, y, z, circle.radius, circle.numVertices-2);
     
     GLfloat *colors = new GLfloat[circle.numVertices*3];
     for (int i = 0; i<circle.numVertices*3; i++)
@@ -167,7 +180,7 @@ void generateCircle(Circle &circle, GLfloat &&x, GLfloat &&y, GLfloat &&z,
     glGenBuffers(1, &circle.points_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, circle.points_vbo);
     glBufferData(GL_ARRAY_BUFFER, circle.numVertices*3*sizeof(GLfloat),
-                 circleVertices, GL_STATIC_DRAW);
+                 circle.vertices, GL_STATIC_DRAW);
     
     GLuint colors_vbo = 0;
     glGenBuffers(1, &colors_vbo);
@@ -185,16 +198,19 @@ void generateCircle(Circle &circle, GLfloat &&x, GLfloat &&y, GLfloat &&z,
     glEnableVertexAttribArray(1);
 }
 
+void moveCircle(Circle &circle, GLfloat x, GLfloat y, GLfloat z)
+{
+    circleFan(circle.vertices, x, y, z, circle.radius, circle.numVertices-2);
+    glBindBuffer(GL_ARRAY_BUFFER, circle.points_vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(GLfloat)*circle.numVertices, circle.vertices);
+}
+
 void reshape(int w, int h)
 {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float aspect_ratio = (float)(w)/h;
-    if (w<=h)
-        gluOrtho2D(-1, 1, -1.0/aspect_ratio, 1.0*aspect_ratio);
-    else
-        gluOrtho2D(-1.0*aspect_ratio, 1.0*aspect_ratio, -1.0, 1.0);
+    glOrtho(0, w, h, 0, 0, 0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
