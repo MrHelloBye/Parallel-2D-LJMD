@@ -44,10 +44,13 @@ int main()
     }
     
     // uncomment these lines if on Apple OS X
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    //glfwWindowHint(G#LFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
     GLFWwindow* window = glfwCreateWindow(500, 500, "Particle Demo", NULL, NULL);
     if (!window)
@@ -249,6 +252,7 @@ void check_GLSL_link(GLuint shader_program)
 
 void initShaders(GLuint &shader_program)
 {
+#ifndef RPI
     //Define vertex shader (better to load from text file)
     const char* vertex_shader =
     "#version 400\n"
@@ -268,6 +272,27 @@ void initShaders(GLuint &shader_program)
     "void main() {"
     "  frag_color = vec4(color, 1.0);"
     "}";
+#else
+    static const char* vertex_shader=
+    "#version 110\n"
+    "attribute vec3 vertex_color;\n"
+    "attribute vec3 vertex_position;\n"
+    "varying vec3 color;\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vec4(vertex_position,  1.0);\n"
+    "    color = vertex_color;\n"
+    "}\n";
+
+    static const char* fragment_shader=
+    "#version 110\n"
+    "varying vec3 frag_color;\n"
+    "void main()\n"
+    "{\n"
+    "    gl_FragColor = vec4(frag_color, 1.0);\n"
+    "}\n";
+
+ #endif
     
     //Compile shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -287,7 +312,7 @@ void initShaders(GLuint &shader_program)
     
     // insert location binding code here
     glBindAttribLocation(shader_program, 0, "vertex_position");
-    //glBindAttribLocation(shader_program, 1, "vertex_color");
+    glBindAttribLocation(shader_program, 1, "vertex_color");
     
     glLinkProgram(shader_program);
     

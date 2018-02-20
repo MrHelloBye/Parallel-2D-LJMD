@@ -385,17 +385,18 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 //========================================================================
 //========================================================================
+const int ID_JOYSTICK = GLFW_JOYSTICK_2;
 void joystick_handle(double dt_total){
 
   //Check that there is a joystick
-  int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+  int present = glfwJoystickPresent(ID_JOYSTICK);
   if(present == GLFW_TRUE){
 
     //**************************************************
     //Check the axes
     //**************************************************
     int j_count;
-    const float* j_axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &j_count);
+    const float* j_axes = glfwGetJoystickAxes(ID_JOYSTICK, &j_count);
 
     float leftX,leftY,rightX,rightY,leftTrigger,rightTrigger,dpadX,dpadY;
 
@@ -427,7 +428,7 @@ void joystick_handle(double dt_total){
     //**************************************************
 
     int count;
-    const unsigned char* axes = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
+    const unsigned char* axes = glfwGetJoystickButtons(ID_JOYSTICK, &count);
 
     unsigned char aButton, bButton, xButton,yButton,menuButton,
                   leftBumper,rightBumper,leftStick,rightStick;
@@ -505,9 +506,9 @@ int main(int argc, char* argv[])
 
   glfwSetKeyCallback(window, key_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
-  glfwSetCursorPosCallback(window, cursor_position_callback);
-  glfwSetScrollCallback(window, scroll_callback);
+  //glfwSetMouseButtonCallback(window, mouse_button_callback);
+  //glfwSetCursorPosCallback(window, cursor_position_callback);
+  //glfwSetScrollCallback(window, scroll_callback);
 
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -525,11 +526,11 @@ int main(int argc, char* argv[])
   adjust_grid();
 
   //Check for the joystick
-  int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+  int present = glfwJoystickPresent(ID_JOYSTICK);
   if(present != GLFW_TRUE){
-    printf("GLFW_JOYSTICK_1 not present\n");
+    printf("ID_JOYSTICK not present\n");
   }else{
-    const char* name = glfwGetJoystickName(GLFW_JOYSTICK_1);
+    const char* name = glfwGetJoystickName(ID_JOYSTICK);
     printf("Detected joystick \"%s\"\n",name);
 
     if(strcmp(name,"Xbox Wireless Controller") != 0){
