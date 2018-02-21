@@ -15,6 +15,7 @@
 #include <GL/glew.h> // include GLEW and new version of GL on Windows
 #include <GLFW/glfw3.h> // GLFW helper library
 #include <stdio.h>
+#include <unistd.h>
 
 #include "circles.hpp"
 
@@ -23,10 +24,34 @@ void check_GLSL_compile(GLuint shader);
 void check_GLSL_link(GLuint shader_program);
 void initShaders(GLuint&);
 
-#define CIRCLE_SPEED 0.5
+#define CIRCLE_SPEED 0.1
 
-int main()
+int main(int argc,char** argv)
 {
+/**********************************************************************
+ *  Load in some commandline arguments
+ **********************************************************************/
+	bool drawInstanced = false;
+
+	char c;
+	while((c = getopt (argc, argv, "i")) != -1){
+		switch(c){
+			case 'i':
+				drawInstanced=true;
+				break;
+			case '?':
+				if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr,
+							"Unknown option character `\\x%x'.\n",
+							optopt);
+				return 1;
+			default:
+				abort ();
+		}
+	}
+
 	// start GL context and O/S window using the GLFW helper library
 	if (!glfwInit())
 	{
@@ -69,7 +94,7 @@ int main()
 
 	//--------------------------------------------------------//
 
-	Circles circles(0.05, 100,100,GL_TRUE);
+  Circles circles(0.05, 120,100,drawInstanced);
   circles.setColorsID();
   circles.setPosLattice();
 

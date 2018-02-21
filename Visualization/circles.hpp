@@ -30,7 +30,7 @@ class Circles
     GLint numVertices;
     GLint numCircles;
 
-    GLint drawInstanced;
+    bool drawInstanced;
 
     //GPU side vbo's
     GLuint vertices_vbo = 0;
@@ -41,9 +41,16 @@ class Circles
 
 
     //CPU side memory
-    GLfloat *vertices;
-    GLfloat *pos;
-    GLfloat *colors;
+    GLfloat *vertices = NULL;
+    GLfloat *pos = NULL;
+    GLfloat *colors = NULL;
+
+    //For non-instanced rendering
+    GLfloat *vertices_copies = NULL;
+    GLfloat *pos_copies = NULL;
+    GLfloat *colors_copies = NULL;
+    GLint *first = NULL;
+    GLsizei *count = NULL;
 
     //Helper Function to Generate Circles
     void verticesFan();
@@ -56,7 +63,7 @@ class Circles
     void updatePosBuffer();
     void updateColorsBuffer();
   public:
-    Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,GLint &&drawInstanced=GL_FALSE);
+    Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,bool drawInstanced=false);
     ~Circles();
 
     //Manipulating positions
