@@ -36,9 +36,10 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 {
     m_potentialEnergy = 0;  //reset potential energy
 
-    const double skin_cutoff = 8.*m_sigma;
+    const double skin_cutoff = 3.*m_sigma;
     const double skin_cutoff_sqrd = skin_cutoff*skin_cutoff;
-    const double too_close_sqrd = 0;//(0.5*m_sigma)*(0.5*m_sigma);  //%BE CAREFUL HERE -> if make too large, it will ignore important forces
+    double too_close = 0.8*m_sigma;
+    double too_close_sqrd = too_close*too_close;
 
     vec2 sys_size = system.subsystemSize(); //returns size of LOCAL processors system box
     int decomp_dim = 0;  // 0 or 1, x or y direction of decomposition
@@ -102,17 +103,17 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
             double radiusSqrd = displacement.lengthSquared();
             //if(radiusSqrd > skin_cutoff_sqrd ) continue;
 
-            if(radiusSqrd > skin_cutoff_sqrd || radiusSqrd < too_close_sqrd) continue;  //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+            if(radiusSqrd > skin_cutoff_sqrd ) continue;  //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+
+             //if(radiusSqrd < too_close_sqrd) radiusSqrd = too_close_sqrd;
 
             double radius = sqrt(radiusSqrd);
             double sigma_over_radius = m_sigma/radius;
 
-            //std::cout <<sigma_over_radius <<"sigmaoverradius" << std::endl;
 
 
             double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
             //ATTRACTIVE FORCE SHOULD POINT TOWARDS OTHER ATOM. REPULSIVE AWAY FROM OTHER ATOM!!!
-            //std::cout << total_force_over_r <<"force" <<std::endl;
 
             //find and set force components
             //double total_force_over_r = total_force/radius; //precalculate to save 2 FLOPS
@@ -120,10 +121,6 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
                 current_atom->force[j] += total_force_over_r*displacement[j]; //i.e. Fx = (F/r)*x
                 other_atom->force[j] -= current_atom->force[j]; //using Newton's 3rd law
             }
-            
-              //force is blown up here
-            //std::cout << current_atom->force[0] <<"force in lj LINE 99" <<std::endl;
-
             
 
              if(system.steps() % system.m_sample_freq ==0){
@@ -201,7 +198,10 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
                         double radiusSqrd = displacement.lengthSquared();
                         // if(radiusSqrd > skin_cutoff_sqrd ) continue;
-                        if(radiusSqrd > skin_cutoff_sqrd || radiusSqrd < too_close_sqrd) continue;  //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+                        if(radiusSqrd > skin_cutoff_sqrd ) continue;
+
+                         if(radiusSqrd < too_close_sqrd) radiusSqrd = too_close_sqrd; //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+
                         double radius = sqrt(radiusSqrd);
                         double sigma_over_radius = m_sigma/radius;
                         double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
@@ -227,7 +227,10 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
                         double radiusSqrd = displacement.lengthSquared();
                        //  if(radiusSqrd > skin_cutoff_sqrd ) continue;
-                         if(radiusSqrd > skin_cutoff_sqrd || radiusSqrd < too_close_sqrd) continue;  //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+                        if(radiusSqrd > skin_cutoff_sqrd ) continue;
+
+                        if(radiusSqrd < too_close_sqrd) radiusSqrd = too_close_sqrd; //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
+
                         double radius = sqrt(radiusSqrd);
                         double sigma_over_radius = m_sigma/radius;
                         double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));

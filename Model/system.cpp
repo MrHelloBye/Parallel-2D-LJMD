@@ -119,8 +119,81 @@ void System::removeTotalMomentum() {
     */
 }
 
-//note: currently upon initialization, each processor will create the ENTIRE global system. Then will send atoms and delete uneecesary atoms when send_atoms
-//is called in velocityverlet.cpp. Could optimize to have only the subdomains created here, but not sure how much CPU this saves since just corresponds to 1 dt send commands.
+
+//THIS IS NOT READY TO BE USED FOR MULTIPLE PROCESSORS--> need to adjust in terms of nproc and subsystem size...
+/*
+void System::createFCCLattice(vec2 numberOfUnitCellsEachDimension, double latticeConstant, double temperature,  double variance, bool input_variance, double mass) {
+
+
+    vec2 LatticeVector;  //vector which points to the origin of each unit cell
+    //Note: 1st unit cell starts at 0,0
+
+    double x,y;
+    double halfLatticeConstant=0.5*latticeConstant;
+
+    //each processor finds out what it's ID (AKA rank) is and how many processors there are
+    int nprocs, rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+
+    for(int i=0;i<numberOfUnitCellsEachDimension[0];i++){
+        //i.e. i = 0,1...N_x-1
+        for(int j=0;j<numberOfUnitCellsEachDimension[1];j++){
+
+                LatticeVector.set(latticeConstant*i,latticeConstant*j);
+
+                //Place the 4 atoms of each fcc cell into coordinates. Use setInitialPosition(): this will both set position and
+                //save the atom's initial position for use later.
+                //NOTE: The PBCs will prevent from adding atoms which are beyond the system dimensions when approach the boundaries.
+                Atom *atom1 = new Atom(UnitConverter::massFromSI(mass)); //uses mass in kg: mass is correct
+                x = LatticeVector[0];
+                y = LatticeVector[1];
+
+                atom1->setInitialPosition(x,y);
+                atom1->num_bndry_crossings.set(0.,0.);   //make sure initial # of bndry crossings is 0
+                atom1->resetVelocityMaxwellian(temperature, variance, input_variance);
+                m_atoms.push_back(atom1);     //add element to vector m_atoms 1 element (atom object)
+
+                Atom *atom2 = new Atom(UnitConverter::massFromSI(mass));
+                x = halfLatticeConstant + LatticeVector[0];
+                y = halfLatticeConstant + LatticeVector[1];
+                atom2->setInitialPosition(x,y);
+                atom2->num_bndry_crossings.set(0.,0.);
+                atom2->resetVelocityMaxwellian(temperature, variance, input_variance);
+                m_atoms.push_back(atom2);
+
+                /*
+                Atom *atom3 = new Atom(UnitConverter::massFromSI(mass));
+                x = LatticeVector[0];
+                y = halfLatticeConstant + LatticeVector[1];
+                atom3->setInitialPosition(x,y);
+                atom3->num_bndry_crossings.set(0.,0.);
+                atom3->resetVelocityMaxwellian(temperature, variance, input_variance);
+                m_atoms.push_back(atom3);
+
+                Atom *atom4 = new Atom(UnitConverter::massFromSI(mass));
+                x = halfLatticeConstant + LatticeVector[0];
+                y = LatticeVector[1];
+                atom4->setInitialPosition(x,y);
+                atom4->num_bndry_crossings.set(0.,0.);
+                atom4->resetVelocityMaxwellian(temperature, variance, input_variance);
+                m_atoms.push_back(atom4);
+
+                //std::cout << "atom mass = " <<atom1->mass() <<std::endl;
+
+            }
+        }
+
+
+    setSystemSize(latticeConstant*numberOfUnitCellsEachDimension); //system size set by multiply vec2 # of unit cells by latticeConstant
+    std::cout<<"system size = " << m_systemSize <<std::endl;
+    std::cout<<"num_atoms = " << num_atoms() <<std::endl;
+}
+*/
+
+
+
+
 void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double latticeConstant, double temperature, double mass, vec2 subsystemOrigin) {
 
     double x;
@@ -134,12 +207,12 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
     //std::cout <<"x" <<x <<std::endl;  //works correctly
 
 
-    for(int i=1;i<subsystemSize[0];i++){  // i = 1 and < b/c can't have atoms on both boundaries--> will blow up!
+    for(int i=0;i<subsystemSize[0];i++){  // i = 1 and < b/c can't have atoms on both boundaries--> will blow up!
         //i.e. i = 0,1...N_x-1
 
         double y = 0.5*latticeConstant;
 
-        for(int j=1;j<subsystemSize[1];j++){
+        for(int j=0;j<subsystemSize[1];j++){
 
                 Atom *atom = new Atom(UnitConverter::massFromSI(mass)); //uses mass in kg: mass is correct //* atom means create a pointer --> atom is a pointer
                 //equivalent to: Atom *atom;  atom = new Atom(..);  //declare a pointer and have it point to new Atom object

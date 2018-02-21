@@ -28,7 +28,7 @@ public:
     System();
     ~System();
     int m_sample_freq;
-    //void createFCCLattice(vec2 Total_systemSize, double latticeConstant, double temperature,  double mass);
+    void createFCCLattice(vec2 Total_systemSize, double latticeConstant, double temperature,  double mass);
     void createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double latticeConstant, double temperature,  double mass, vec2 subsystemOrigin);
     void createRandomPositions(int num_particles, double side_length, double temperature,  double mass);
     void applyPeriodicBoundaryConditions();

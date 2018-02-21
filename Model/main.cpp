@@ -49,9 +49,9 @@ int main(int argc, char **argv)
     //decompositione1D_system(system_length, my_id, nprocs, &subsystem_start, &subdomain_size);
     //cout << "length of each subsystem" << subsystem_length <<endl;
 
-    double initialTemperature = 100.;//100; //in K
+    double initialTemperature = 600.;//in K
     double currentTemperature;
-    double latticeConstant =3.82;  //in angstroms
+     double latticeConstant =30.2;  //in angstroms  //need to start atoms far enough apart to not have blow up issues.
     double sigma = 3.4; //atom/particle diameter in Angstrom for LJ potential
     double epsilon = 1.0318e-2; // epsilon from LJ in eV
     double side_length;
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(20,10); //rectangle for symmetry for 2 procs, TOTAL system dimensions--> in units of unit cells--> since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(30,30); //rectangle for symmetry for 2 procs, TOTAL system dimensions--> in units of unit cells--> since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize; //this will be defined in each processor seperately
     subsystemSize[0] = Total_systemSize[0]/nprocs;  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //WILL CHANGE THIS TO /nprocs when do 2D parallelization
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
     int StatSample_freq = 10;
 
-    int N_time_steps = 1100000; //number of time steps
+    int N_time_steps = 1000000; //number of time steps
 
     //for NVT ensemble
     int N_steps = 5;  //number of steps over which to gradually rescale velocities: has to be large enough to prevent instability
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     System system;
     system.createSCLattice(Total_systemSize,subsystemSize, latticeConstant, initialTemperature, mass, subsystemOrigin);
-    //system.createFCCLattice(numberOfUnitCellsEachDimension, latticeConstant, initialTemperature, mass);
+    //system.createFCCLattice(Total_systemSize, latticeConstant, initialTemperature, mass);
     //system.createRandompositionitions(num_particles, side_length, initialTemperature, mass);
     system.potential().setEpsilon(1.0); //if don't set to 1.0, must modify LJ eqn.
     system.potential().setSigma(UnitConverter::lengthFromAngstroms(sigma));      //i.e. LJ atom/particle diameter,
