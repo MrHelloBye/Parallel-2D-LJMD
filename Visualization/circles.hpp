@@ -30,6 +30,8 @@ class Circles
     GLint numVertices;
     GLint numCircles;
 
+    GLint drawInstanced;
+
     //GPU side vbo's
     GLuint vertices_vbo = 0;
     GLuint pos_vbo = 0;
@@ -48,12 +50,13 @@ class Circles
     
     //Private OpenGL Related
     int createBuffers();
+    int createInstancedBuffers();
 
     void updateVerticesBuffer();
     void updatePosBuffer();
     void updateColorsBuffer();
   public:
-    Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles);
+    Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,GLint &&drawInstanced=GL_FALSE);
     ~Circles();
 
     //Manipulating positions

@@ -69,7 +69,7 @@ int main()
 
 	//--------------------------------------------------------//
 
-	Circles circles(0.05, 100,100);
+	Circles circles(0.05, 100,100,GL_TRUE);
   circles.setColorsID();
   circles.setPosLattice();
 

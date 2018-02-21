@@ -74,7 +74,7 @@ int loadShaders(GLuint &shader_program,
     const char* vert_src = vert_source.c_str();
     const char* frag_src = frag_source.c_str();
 
-    cout <<vert_src;
+    //cout <<vert_src;
 
     //Compile shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
