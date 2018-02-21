@@ -45,7 +45,6 @@ void Circles::verticesFan()
  * Private OpenGL related
  **************************************************/
 int Circles::createBuffers(){
-
   vertices = new GLfloat[numVertices*2];
   pos = new GLfloat[numCircles*2];
   colors = new GLfloat[numCircles*3];

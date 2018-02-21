@@ -28,12 +28,12 @@ void initShaders(GLuint&);
 
 int main(int argc,char** argv)
 {
-/**********************************************************************
- *  Load in some commandline arguments
- **********************************************************************/
+	/**********************************************************************
+	 *  Load in some commandline arguments
+	 **********************************************************************/
 	bool drawInstanced = false;
 
-	char c;
+	int c;
 	while((c = getopt (argc, argv, "i")) != -1){
 		switch(c){
 			case 'i':
@@ -82,7 +82,7 @@ int main(int argc,char** argv)
 	if (GLEW_OK != err)
 	{
 		/* Problem: glewInit failed, something is seriously wrong. */
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+		fprintf(stderr, "GLEW Error: %s\n", glewGetErrorString(err));
 	}
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
@@ -94,9 +94,9 @@ int main(int argc,char** argv)
 
 	//--------------------------------------------------------//
 
-  Circles circles(0.05, 120,100,drawInstanced);
-  circles.setColorsID();
-  circles.setPosLattice();
+	Circles circles(0.05, 120,100,drawInstanced);
+	circles.setColorsID();
+	circles.setPosLattice();
 
 	//--------------------------------------------------------//
 
@@ -122,7 +122,7 @@ int main(int argc,char** argv)
 	//--------------------------------------------------------//
 
 	// Initialize timer
-  double t, dt, t_old;
+	double t, dt, t_old;
 	t_old = glfwGetTime() - 0.01;
 
 	glUseProgram(shader_program);
@@ -132,10 +132,10 @@ int main(int argc,char** argv)
 		// wipe the drawing surface clear
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //Update the timer, determine dt
-    t = glfwGetTime();
-    dt = t-t_old;
-    t_old = t;
+		//Update the timer, determine dt
+		t = glfwGetTime();
+		dt = t-t_old;
+		t_old = t;
 
 		//Move Positions
 		circles.movePos(dt*CIRCLE_SPEED, dt*CIRCLE_SPEED);
