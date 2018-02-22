@@ -3,10 +3,15 @@
 #include "atom.h"
 #include "send_atoms.h"
 #include <mpi.h>
+#include "global.h"
+#include "unitconverter.h"
 
 
 void VelocityVerlet::integrate(System &system, double dt) //passing by reference &system, passes using the address but doesn't create a variable (pointer) whose value = that address
 {
+    // double mass;
+
+    //std::cout << "mass in vv" <<mass <<std::endl;
 
     int nprocs, rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
@@ -21,11 +26,17 @@ void VelocityVerlet::integrate(System &system, double dt) //passing by reference
 
     for(Atom *atom : system.atoms()) {
         //this operates on the vectors directly using vec3 class
-        atom->velocity += atom->force*half_dt/atom->mass();
+        atom->velocity += atom->force*half_dt/mass;
         atom->position += atom->velocity*dt;  //NOTE: since v is computed 1st, this is actually x(t+dt) = x(t) + vt+0.5at^2 since v = v+0.5at
         //std::cout<< atom->m_initial_position[0] << "atom INITIAL position" <<std::endl;  //initial positions seem fine...
         //std::cout << atom->position[0] <<"atomposition in VV" <<std::endl;  //these positions are blown up...
          //std::cout << atom->force[0] << "atom force" <<std::endl; //force is blown up
+
+       // if(atom->velocity[0] == 0){
+       //std::cout << "velocity in vv is ZERO" << atom->velocity[0] << "force is" << atom->force[0] << std::endl;
+            //give it a velocity!
+          //  atom->resetVelocityMaxwellian(UnitConverter::temperatureFromSI(600.));
+        //}
 
     }
 
@@ -44,6 +55,6 @@ void VelocityVerlet::integrate(System &system, double dt) //passing by reference
     system.calculateForces(); // New positions, recompute forces
 
     for(Atom *atom : system.atoms()) {
-        atom->velocity += atom->force*half_dt/atom->mass();  //calculate new velocities
+        atom->velocity += atom->force*half_dt/mass;  //calculate new velocities
     }
 }

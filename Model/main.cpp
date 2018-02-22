@@ -8,7 +8,7 @@
 
 //Author: Timofey Golubev based on the code found at https://github.com/andeplane/molecular-dynamics-fys3150.
 
-
+#include "global.h"
 #include "random.h"
 #include "lennardjones.h"
 #include "velocityverlet.h"
@@ -23,6 +23,7 @@
 #include <time.h>
 #include <stdio.h> //for printf
 #include <mpi.h>  //get the mpi functions from here
+
 
 using namespace std;
 using namespace chrono;
@@ -51,16 +52,16 @@ int main(int argc, char **argv)
 
     double initialTemperature = 600.;//in K
     double currentTemperature;
-     double latticeConstant =30.2;  //in angstroms  //need to start atoms far enough apart to not have blow up issues.
+     double latticeConstant =20.2;//changed from 30  //in angstroms  //need to start atoms far enough apart to not have blow up issues.
     double sigma = 3.4; //atom/particle diameter in Angstrom for LJ potential
     double epsilon = 1.0318e-2; // epsilon from LJ in eV
     double side_length;
-    double mass = 6.63352088e-26; // mass in kg
+
     double total_dt_time= 0.0;
 
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(30,30); //rectangle for symmetry for 2 procs, TOTAL system dimensions--> in units of unit cells--> since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(90,30); //rectangle for symmetry for 2 procs, TOTAL system dimensions--> in units of unit cells--> since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize; //this will be defined in each processor seperately
     subsystemSize[0] = Total_systemSize[0]/nprocs;  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //WILL CHANGE THIS TO /nprocs when do 2D parallelization
@@ -78,6 +79,9 @@ int main(int argc, char **argv)
     //-----------------------------------------------------------------------------------------------------------------------------------------------
     //Initialize MD units
      UnitConverter::initializeMDUnits(sigma, epsilon);
+    // extern double mass;
+
+     //double mass = UnitConverter::massFromSI(6.63352088e-26); // mass in kg
      initialTemperature = UnitConverter::temperatureFromSI(initialTemperature);
      latticeConstant = UnitConverter::lengthFromAngstroms(latticeConstant);
      double dt = UnitConverter::timeFromSI(2e-15); //
@@ -88,6 +92,10 @@ int main(int argc, char **argv)
     cout << "One unit of mass is " << UnitConverter::massToSI(1.0) << " kg" << endl;
     cout << "One unit of temperature is " << UnitConverter::temperatureToSI(1.0) << " K" << endl;
     cout <<"Epsilon is " << epsilon <<" eV and sigma is " <<sigma <<" in Angstrom" << endl;
+
+    cout << "mass in LJ units" << mass <<endl;
+
+    cout << "timestep in LJ units" <<dt <<endl;
 
 
     System system;
@@ -112,7 +120,7 @@ int main(int argc, char **argv)
     }
     //record right half of system
 
-    if(my_id == 1) {
+    if(my_id == 2) {
         movie2.saveState(system, statisticsSampler);  //save the initial particle positionitions to file. pass statisticsSampler object too, so can use density function...
     }
     //all initial positions are correct...
@@ -165,7 +173,7 @@ int main(int argc, char **argv)
 
         //Uncoment the below block to use NVT ensemble.
 
-       /*
+/*
 
             //periodically rescale Velocities to keep T constant (NVT ensemble)
             //if(timestep % 100 == 0){
@@ -176,7 +184,8 @@ int main(int argc, char **argv)
             //Note: initial temperature is the desired temperature here
             system.rescaleVelocities(statisticsSampler, currentTemperature, initialTemperature, N_steps);
             //}
-            */
+*/
+
 
 
 
@@ -193,7 +202,7 @@ int main(int argc, char **argv)
 
 
         if(timestep%10 == 0){
-            if( my_id == 1 ) {  //use proc1 to record
+            if( my_id == 2 ) {  //use proc1 to record
                 movie2.saveState(system, statisticsSampler);  //save the initial particle positionitions to file. pass statisticsSampler object too, so can use density function...
             }
         }

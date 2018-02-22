@@ -7,6 +7,7 @@
 #include <map>
 #include <mpi.h>
 #include <algorithm> //need for sort etc.
+#include "global.h"
 
 System::System()   //constructor
 {
@@ -96,15 +97,16 @@ void System::rescaleVelocities(StatisticsSampler &statisticsSampler, double curr
 void System::removeTotalMomentum() {
     // Find the total momentum and remove momentum equally on each atom so the total momentum becomes zero.
     vec2 total_momentum;
+    //double mass;
     for(Atom *atom : atoms()) { //c++11 way of iterating through  entire vector or array
-        total_momentum += atom->mass()*atom->velocity;  //mass() returns value of m_mass (atom's mass)
+        total_momentum += mass*atom->velocity;
     }
     vec2 Mom_per_atom;   //2D momentum components
     Mom_per_atom = total_momentum/num_atoms(); //this is amount of abs(momentum) per atom that need to remove to get total to 0
     for(Atom *atom : atoms()) {
         for(int j=0;j<2;j++){
             //evenly modify components of velocity of each atom to yield total system momentum of 0
-            atom->velocity[j] -= Mom_per_atom[j]/atom->mass();
+            atom->velocity[j] -= Mom_per_atom[j]/mass;
         }
     }
 
@@ -214,7 +216,7 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
 
         for(int j=0;j<subsystemSize[1];j++){
 
-                Atom *atom = new Atom(UnitConverter::massFromSI(mass)); //uses mass in kg: mass is correct //* atom means create a pointer --> atom is a pointer
+                Atom *atom = new Atom(mass); //uses mass already converted to LJ units in main //* atom means create a pointer --> atom is a pointer
                 //equivalent to: Atom *atom;  atom = new Atom(..);  //declare a pointer and have it point to new Atom object
 
                 atom->setInitialPosition(x,y);
@@ -222,6 +224,10 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
                 atom->resetVelocityMaxwellian(temperature);
                 m_atoms.push_back(atom);     //add element to vector m_atoms 1 element (pointer to atom)
                 y += latticeConstant;
+
+
+                //std::cout << "mass line 227 in system" <<atom->m_mass <<std::endl;
+
         }
         x +=latticeConstant;
     }
@@ -235,7 +241,7 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
     std::cout<<"num_atoms = " << num_atoms() <<std::endl;
 
 
-    //setSubSystemSize(latticeConstant*subsystemSize);
+     setSubSystemSize(latticeConstant*subsystemSize);
 
 }
 
@@ -246,7 +252,7 @@ void System::createRandomPositions(int num_particles, double side_length, double
 
     //Places particles randomly into a cube
     for(int i=0; i<num_particles; i++) {      //for all atoms (100 right now)
-        Atom *atom = new Atom(UnitConverter::massFromSI(mass)); //uses mass in kg
+        Atom *atom = new Atom(mass); //uses mass in kg
         //Choose random x,y,z positions
         double x = Random::nextDouble(0, side_length); // random number in the interval [0,10]. nextDouble is defined in random.h
         double y = Random::nextDouble(0, side_length);
@@ -313,6 +319,16 @@ int System::delete_atoms (std::vector <int> indices) {
                 ++shift;
         }
         m_num_atoms -= shift;
+
+        //test deletion: loops through  all atoms
+        /*
+        for(int i=0; i<num_atoms()-1; i++){
+            std::cout <<"erase test" << atoms(i)->position[0] << std::endl;
+        }
+        */
+
+
+
         return shift;
 }
 /* I think this version is not needed --> is for 1 atom only it seems...
@@ -336,15 +352,23 @@ std::vector <int> System::add_atoms (const int natoms, Atom &new_atoms) {
 }
 */
 
-/*!
+
+/*
+
  Attempt to push an atom(s) into the system.  This assigns the map automatically to link the atoms global index to the local storage location.
  This reallocates the internal vector that stores the atoms.
  \param [in] natoms Length of the array of atoms to add to the system.
  \param [in] \*new_atoms Pointer to an array of atoms the user has created elsewhere.
-*/
+
 std::vector <int> System::add_atoms (std::vector <Atom> new_atoms) { //accepts POINTER to vector of new_atoms
         int index = m_atoms.size(), natoms = new_atoms.size();  //use . for objects -> for pointers
+        //double mass;
         std::vector <int> update_proc(natoms);
+
+        int nprocs, rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
+        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+
         //gets through here
 
         //std::cout <<"index at line 248"<< index <<std::endl;
@@ -355,20 +379,77 @@ std::vector <int> System::add_atoms (std::vector <Atom> new_atoms) { //accepts P
                m_atoms.push_back(adding_atom); //note: at() is member fnc of c++ vector class: Returns a reference to the element at position n in the vector. is almost same as [] operator but here checks whether i is within bounds of the vector.
 
 
+
+
                //hard code resseting the mass to correct value
               //adding_atom->setMass(UnitConverter::massFromSI(6.63352088e-26));
 
-               std::cout <<"added atom mass" << adding_atom->mass() << std::endl;
-               glob_to_loc_id_[adding_atom->atom_index] = index;  //BREAKS HERE!  //it has atom_index = 0...
+               std::cout <<"added atom velocity" << adding_atom->velocity[0] << " " << adding_atom->velocity[1] << "force should be 0 right now" << adding_atom->force[0] << " " <<adding_atom->force[1] << "proc " << rank <<std::endl;
+               //glob_to_loc_id_[adding_atom->atom_index] = index;  //BREAKS HERE!  //it has atom_index = 0...
                //std::cout <<"line 270 in addatoms" <<std::endl;
                //works through here
-               update_proc[i] = adding_atom->atom_index; //note: if accessing member property through a pointer, must use -> instead of .
+               update_proc[i] = i;  //Later can add atom indices to actually track how the atoms move around to different processors//adding_atom->atom_index; //note: if accessing member property through a pointer, must use -> instead of .
                index++;
 \
         }
         m_num_atoms += natoms;
         return update_proc;
 }
+*/
+
+void System::add_atoms (std::vector <double> new_atoms, double num_recieved) { //accepts POINTER to vector of new_atoms
+        //int index = m_atoms.size();//, natoms = new_atoms.lenth()/4; //4 numbers for each atom //use . for objects -> for pointers
+        //double mass;
+        //std::vector <int> update_proc(natoms);
+
+        int nprocs, rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
+        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+
+        //gets through here
+
+        //std::cout <<"index at line 248"<< index <<std::endl;
+        //std::cout <<"natoms at line 248"<< natoms <<std::endl;  //finds that there are 100 new atoms --> ok.. make sense for 2 processors...
+        //issue is that it might try to add atoms that already are in the processor AGAIN
+        for (int i = 0; i < num_recieved; ++i) {
+
+            int index =4*i;
+
+
+              //we will initialize NEW atom object
+               Atom *adding_atom = new Atom(mass);  //makes a pointer to the individual atom
+               adding_atom->position[0] = new_atoms[index];
+               adding_atom->position[1] = new_atoms[index+1];
+               //TRY resetting any added atoms velocities according to maxwell boltzmann--> b/c otherwise they blow up...
+               //adding_atom->resetVelocityMaxwellian(600.);  //need to change this to variable
+
+
+
+               adding_atom->velocity[0] =new_atoms[index+2];
+               adding_atom->velocity[1] = new_atoms[index+3];
+               adding_atom->force.set(0,0);  //intialize w/ 0 forces since calculated in LJ
+
+
+
+               m_atoms.push_back(adding_atom); //note: at() is member fnc of c++ vector class: Returns a reference to the element at position n in the vector. is almost same as [] operator but here checks whether i is within bounds of the vector.
+
+               //hard code resseting the mass to correct value
+              //adding_atom->setMass(UnitConverter::massFromSI(6.63352088e-26));
+
+               std::cout <<"added atom position" << adding_atom->position[0] <<" " << adding_atom->position[1] << "added atom velocity" << adding_atom->velocity[0] << " " << adding_atom->velocity[1] << "proc " << rank <<std::endl;
+               //glob_to_loc_id_[adding_atom->atom_index] = index;  //BREAKS HERE!  //it has atom_index = 0...
+               //std::cout <<"line 270 in addatoms" <<std::endl;
+               //works through here
+              // update_proc[i] = i;  //Later can add atom indices to actually track how the atoms move around to different processors//adding_atom->atom_index; //note: if accessing member property through a pointer, must use -> instead of .
+               //index++;
+\
+        }
+        m_num_atoms += num_recieved;
+       // return update_proc;
+}
+
+
+
 
 /*!
  Attempt to push ghost atom(s) into the system.  This assigns the map automatically to link the atoms global index to the local storage location.

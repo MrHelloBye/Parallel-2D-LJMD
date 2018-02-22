@@ -6,7 +6,7 @@ To run from terminal
 
 1. make
 
-2. mpirun -np 1 MPI-md
+2. mpirun -np 3 MPI-md
 
 
 

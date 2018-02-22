@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include "unitconverter.h"
+#include "global.h"
 
 using std::ofstream; using std::cout; using std::endl;
 
@@ -54,23 +55,26 @@ void StatisticsSampler::sample(System &system)
     samplePotentialEnergy(system);
     sampleTemperature(system);
     sampleDiffusionCoeff(system);
-    sampleDensity(system);
+    //sampleDensity(system);
     saveToFile(system);
 }
 
 void StatisticsSampler::sampleMomentum(System &system)
 {
+    //double mass;
     m_totalMomentum.set(0,0);  //reset total-momentum to 0
     for(Atom *atom : system.atoms()) { //c++11 way of iterating through  entire vector or array
-          m_totalMomentum += atom->mass()*atom->velocity;  //mass() returns value of m_mass (atom's mass)
+          m_totalMomentum += mass*atom->velocity;  //mass() returns value of m_mass (atom's mass)
      }
 }
 
 void StatisticsSampler::sampleKineticEnergy(System &system)
 {
+
+    //double mass; //declare here, but value given from main.cpp (set as global var by using "extern" in global.h)
     m_kineticEnergy = 0.; // Remember to reset the value from the previous timestep
     for(Atom *atom : system.atoms()) {
-        m_kineticEnergy += 0.5*atom->mass()*atom->velocity.lengthSquared();
+        m_kineticEnergy += 0.5*mass*atom->velocity.lengthSquared();
     }
 }
 
@@ -86,6 +90,7 @@ void StatisticsSampler::sampleTemperature(System &system)
     //cout <<"num_atoms= " << system.num_atoms() << endl;
 }
 
+/*
 void StatisticsSampler::sampleDensity(System &system)
 {
   //reset quantities
@@ -98,6 +103,7 @@ void StatisticsSampler::sampleDensity(System &system)
     }
 
 }
+*/
 
 
 void StatisticsSampler::sampleDiffusionCoeff(System &system)

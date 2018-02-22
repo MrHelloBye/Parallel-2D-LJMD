@@ -42,7 +42,9 @@ public:
 
     //std::vector <int> add_atoms (const int natoms, Atom &new_atoms);		//!< Add atom(s) to the system with an array of atoms
     void add_ghost_atoms (const int natoms,  std::vector <Atom> new_atoms);		//!< Add ghost atom(s) to the system (does not update the number of atoms the processor is responsible for
-    std::vector <int> add_atoms (std::vector<Atom> new_atoms);				//!< Add atom(s) to the system with an vector of atoms
+    //std::vector <int> add_atoms (std::vector<Atom> new_atoms);				//!< Add atom(s) to the system with an vector of atoms
+    void add_atoms(std::vector <double> new_atoms, double num_recieved);
+
     int delete_atoms (std::vector <int> indices);				//!< Pop atoms with local indices from local storage
     void clear_ghost_atoms ();								//!< Clear ghost atoms from system
 
