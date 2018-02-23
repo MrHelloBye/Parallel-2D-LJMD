@@ -1,2 +1,7 @@
 *.swp
 *.o
+
+*.xyz
+statistics.txt
+
+autom4te.cache/

@@ -34,11 +34,11 @@ using namespace chrono;
 //}
 
 
-int main(int argc, char **argv)
+int modelMain(int argc, char **argv)
 {
    int my_id, nprocs;
     
-    MPI_Init(&argc, &argv);  //initialize MPI environment: takes in arguments from the mpirun command
+    //MPI_Init(&argc, &argv);  //initialize MPI environment: takes in arguments from the mpirun command
     //everything past this point is executed on EACH processor in parallel
 
     //each processor finds out what it's ID (AKA rank) is and how many processors there are

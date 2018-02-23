@@ -26,7 +26,7 @@ void initShaders(GLuint&);
 
 #define CIRCLE_SPEED 0.1
 
-int main(int argc,char** argv)
+int viewMain(int argc,char** argv)
 {
   /**********************************************************************
    *  Load in some commandline arguments

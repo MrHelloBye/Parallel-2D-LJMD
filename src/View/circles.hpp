@@ -1,12 +1,6 @@
-//
-//  main.cpp
-//  OpenGL Schrodinger
-//
-//  Created by Liam Clink on 2/7/18.
-//
-//
+#ifndef CIRCLES_HPP_
+#define CIRCLES_HPP_
 
-// OpenGL practice
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -82,3 +76,5 @@ class Circles
     //More OpenGL related
     int draw();
 };
+
+#endif //CIRCLES_HPP_
