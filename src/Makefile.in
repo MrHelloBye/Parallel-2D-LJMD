@@ -86,7 +86,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = parallel2DLJMD$(EXEEXT)
+bin_PROGRAMS = $(top_builddir)/bin/parallel2DLJMD$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -106,10 +106,11 @@ am__objects_1 = Model/atom.$(OBJEXT) Model/io.$(OBJEXT) \
 	Model/vec2.$(OBJEXT) Model/velocityverlet.$(OBJEXT)
 am__objects_2 = View/circles.$(OBJEXT) View/loadShaders.$(OBJEXT) \
 	View/viewMain.$(OBJEXT)
-am_parallel2DLJMD_OBJECTS = main.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2)
-parallel2DLJMD_OBJECTS = $(am_parallel2DLJMD_OBJECTS)
-parallel2DLJMD_LDADD = $(LDADD)
+am___top_builddir__bin_parallel2DLJMD_OBJECTS = main.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2)
+__top_builddir__bin_parallel2DLJMD_OBJECTS =  \
+	$(am___top_builddir__bin_parallel2DLJMD_OBJECTS)
+__top_builddir__bin_parallel2DLJMD_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -139,8 +140,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(parallel2DLJMD_SOURCES)
-DIST_SOURCES = $(parallel2DLJMD_SOURCES)
+SOURCES = $(__top_builddir__bin_parallel2DLJMD_SOURCES)
+DIST_SOURCES = $(__top_builddir__bin_parallel2DLJMD_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -260,7 +261,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMain.cpp Model/send_atoms.cpp Model/statisticssampler.cpp Model/system.cpp Model/unitconverter.cpp Model/vec2.cpp Model/velocityverlet.cpp 
 viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp 
-parallel2DLJMD_SOURCES = main.cpp $(modelSources) $(viewSources)
+__top_builddir__bin_parallel2DLJMD_SOURCES = main.cpp $(modelSources) $(viewSources)
 all: all-am
 
 .SUFFIXES:
@@ -374,10 +375,13 @@ View/loadShaders.$(OBJEXT): View/$(am__dirstamp) \
 	View/$(DEPDIR)/$(am__dirstamp)
 View/viewMain.$(OBJEXT): View/$(am__dirstamp) \
 	View/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/bin/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/bin
+	@: > $(top_builddir)/bin/$(am__dirstamp)
 
-parallel2DLJMD$(EXEEXT): $(parallel2DLJMD_OBJECTS) $(parallel2DLJMD_DEPENDENCIES) $(EXTRA_parallel2DLJMD_DEPENDENCIES) 
-	@rm -f parallel2DLJMD$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(parallel2DLJMD_OBJECTS) $(parallel2DLJMD_LDADD) $(LIBS)
+$(top_builddir)/bin/parallel2DLJMD$(EXEEXT): $(__top_builddir__bin_parallel2DLJMD_OBJECTS) $(__top_builddir__bin_parallel2DLJMD_DEPENDENCIES) $(EXTRA___top_builddir__bin_parallel2DLJMD_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/parallel2DLJMD$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_parallel2DLJMD_OBJECTS) $(__top_builddir__bin_parallel2DLJMD_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -537,6 +541,7 @@ distclean-generic:
 	-rm -f Model/$(am__dirstamp)
 	-rm -f View/$(DEPDIR)/$(am__dirstamp)
 	-rm -f View/$(am__dirstamp)
+	-test -z "$(top_builddir)/bin/$(am__dirstamp)" || rm -f $(top_builddir)/bin/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

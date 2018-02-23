@@ -15,3 +15,4 @@ src/Model/.dirstamp
 src/View/.deps/
 src/View/.dirstamp
 src/parallel2DLJMD
+bin/

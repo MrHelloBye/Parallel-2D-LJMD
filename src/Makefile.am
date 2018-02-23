@@ -4,5 +4,5 @@ viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
-bin_PROGRAMS = parallel2DLJMD
-parallel2DLJMD_SOURCES = main.cpp $(modelSources) $(viewSources)
+bin_PROGRAMS = $(top_builddir)/bin/parallel2DLJMD
+__top_builddir__bin_parallel2DLJMD_SOURCES = main.cpp $(modelSources) $(viewSources)
