@@ -19,10 +19,10 @@ AC_CHECK_LIB([m],[sqrt])
 AC_DEFINE([VIEW_ENABLED],1)
 AC_DEFINE_UNQUOTED([SHADERS_PATH],"`pwd`/src/View/shaders/")
 
-AC_CHECK_LIB([glfw], [glfwInit])
-AC_CHECK_LIB([GLEW], [glewInit])
-AC_CHECK_LIB([GL], [glCreateShader])
-AC_CHECK_LIB([GLU], [gluGetString])
+#AC_CHECK_LIB([glfw], [glfwInit])
+#AC_CHECK_LIB([glfw3], [glfwCreateWindow])
+#AC_CHECK_LIB([GLEW], [glewInit])
+#AC_CHECK_LIB([GL], [glCreateShader])
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
@@ -40,4 +40,9 @@ AC_CONFIG_FILES([
  Makefile
  src/Makefile
 ])
+
+PKG_CHECK_MODULES(GL, [gl glu], ,[AC_MSG_WARN([GL not found: $GL_PKG_ERRORS])])
+PKG_CHECK_MODULES(GLEW, [glew], ,[AC_MSG_WARN([GLEW not found: $GLEW_PKG_ERRORS])])
+PKG_CHECK_MODULES(GLFW, [glfw3], ,[AC_MSG_WARN([GLFW not found: $GLFW_PKG_ERRORS])])
+
 AC_OUTPUT
