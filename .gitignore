@@ -5,3 +5,13 @@
 statistics.txt
 
 autom4te.cache/
+Makefile
+config.log
+config.status
+src/.deps/
+src/Makefile
+src/Model/.deps/
+src/Model/.dirstamp
+src/View/.deps/
+src/View/.dirstamp
+src/parallel2DLJMD

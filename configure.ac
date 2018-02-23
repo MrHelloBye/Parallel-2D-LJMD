@@ -15,6 +15,9 @@ AC_PROG_CXX([mpic++ mpicxx])
 # Checks for libraries.
 AC_CHECK_LIB([m],[sqrt])
 
+#Determine if the View can be enabled
+AC_DEFINE([VIEW_ENABLED],1)
+AC_DEFINE_UNQUOTED([SHADERS_PATH],"`pwd`/src/View/shaders/")
 
 AC_CHECK_LIB([glfw], [glfwInit])
 AC_CHECK_LIB([GLEW], [glewInit])
@@ -23,6 +26,7 @@ AC_CHECK_LIB([GLU], [gluGetString])
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

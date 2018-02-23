@@ -4192,6 +4192,13 @@ _ACEOF
 fi
 
 
+#Determine if the View can be enabled
+$as_echo "#define VIEW_ENABLED 1" >>confdefs.h
+
+cat >>confdefs.h <<_ACEOF
+#define SHADERS_PATH "`pwd`/src/View/shaders/"
+_ACEOF
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for glfwInit in -lglfw" >&5
 $as_echo_n "checking for glfwInit in -lglfw... " >&6; }
@@ -4783,6 +4790,7 @@ _ACEOF
 fi
 
 done
+
 
 
 # Checks for typedefs, structures, and compiler characteristics.

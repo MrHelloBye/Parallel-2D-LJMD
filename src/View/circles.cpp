@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <string>
 
 #include <GL/glew.h> // include GLEW and new version of GL on Windows
 #include <GLFW/glfw3.h> // GLFW helper library
@@ -221,12 +222,15 @@ int Circles::initShaders(){
 
   shader_program = glCreateProgram();
   //Load the correct shader from file
+  std::string shadersPath = SHADERS_PATH;
   if(drawInstanced){
     std::cout<<"Using glsl 4.00 with instanced drawing"<<std::endl;
-    loadShaders(shader_program,"shaders/circle4.00.vert","shaders/circle4.00.frag");
+    loadShaders(shader_program,shadersPath+"/circle4.00.vert",
+        shadersPath+"/circle4.00.frag");
   } else{
     std::cout<<"Using glsl 1.10 without instanced drawing"<<std::endl;
-    loadShaders(shader_program,"shaders/circle1.10.vert","shaders/circle1.10.frag");
+    loadShaders(shader_program,shadersPath+"/circle1.10.vert",
+        shadersPath+"/circle1.10.frag");
   }
 
   //Bind the arguments of the shader
