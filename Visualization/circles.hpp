@@ -39,6 +39,8 @@ class Circles
 
     GLuint vao = 0;
 
+    GLuint shader_program = 0;
+
 
     //CPU side memory
     GLfloat *vertices = NULL;
@@ -54,7 +56,7 @@ class Circles
 
     //Helper Function to Generate Circles
     void verticesFan();
-    
+
     //Private OpenGL Related
     int createBuffers();
     int createInstancedBuffers();
@@ -62,6 +64,8 @@ class Circles
     void updateVerticesBuffer();
     void updatePosBuffer();
     void updateColorsBuffer();
+
+    int initShaders();
   public:
     Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,bool drawInstanced=false);
     ~Circles();
@@ -77,5 +81,4 @@ class Circles
 
     //More OpenGL related
     int draw();
-    int initShaders(GLuint &shader_program);
 };

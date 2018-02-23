@@ -22,7 +22,7 @@
 
 
 /**************************************************
- * Helper Function Generate Circles
+ * Generate a circle as a fan of vertices
  **************************************************/
 void Circles::verticesFan()
 {
@@ -42,9 +42,12 @@ void Circles::verticesFan()
 }
 
 /**************************************************
- * Private OpenGL related
+ * Create the Buffers used by OpenGL, and bind them
  **************************************************/
+//When instanced drawing isn't available
 int Circles::createBuffers(){
+
+  //Initialize Host memory
   vertices = new GLfloat[numVertices*2];
   pos = new GLfloat[numCircles*2];
   colors = new GLfloat[numCircles*3];
@@ -53,7 +56,7 @@ int Circles::createBuffers(){
   pos_copies = new GLfloat[numVertices*numCircles*2];
   colors_copies = new GLfloat[numVertices*numCircles*3];
 
-  //Initialize vertex buffer object
+  //Initialize buffer objects
   glGenBuffers(1, &vertices_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo);
   glBufferData(GL_ARRAY_BUFFER, numVertices*numCircles*2*sizeof(GLfloat),
@@ -70,25 +73,27 @@ int Circles::createBuffers(){
       colors_copies, GL_DYNAMIC_DRAW);
 
 
+  //Generate the vao
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  //vertices_vbo
+  //Bind the vbos to the vao
   glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), NULL);
 
-  //pos_vbo
   glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), NULL);
 
-  //colors_vbo
   glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), NULL);
 
+  //Enable them for the vertex shader
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
 
+  //Make some CPU side array for specifying where circles start How many
+  //verticies each circle has
   first = new GLint[numCircles];
   count = new GLsizei[numCircles];
   for(int i =0; i < numCircles;i++){
@@ -99,11 +104,13 @@ int Circles::createBuffers(){
   return 0;//Success
 }
 int Circles::createInstancedBuffers(){
+
+  //Initialize Host memory
   vertices = new GLfloat[numVertices*2];
   pos = new GLfloat[numCircles*2];
   colors = new GLfloat[numCircles*3];
 
-  //Initialize vertex buffer object
+  //Initialize buffer objects
   glGenBuffers(1, &vertices_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo);
   glBufferData(GL_ARRAY_BUFFER, numVertices*2*sizeof(GLfloat),
@@ -120,23 +127,23 @@ int Circles::createInstancedBuffers(){
       colors, GL_DYNAMIC_DRAW);
 
 
+  //Generate the vao
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  //vertices_vbo
+  //Bind the vbos to the vao
   glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), NULL);
 
-  //pos_vbo
   glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-  glVertexAttribDivisor(1, 1);
+  glVertexAttribDivisor(1, 1); //Increment the pos with each circle
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), NULL);
 
-  //colors_vbo
   glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-  glVertexAttribDivisor(2, 1);
+  glVertexAttribDivisor(2, 1); //Increment the color with each circle
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), NULL);
 
+  //Enable them for the vertex shader
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
@@ -144,6 +151,9 @@ int Circles::createInstancedBuffers(){
   return 0;//Success
 }
 
+/**************************************************
+ * Send the CPU side buffers to the device, for drawing
+ **************************************************/
 void Circles::updateVerticesBuffer(){
   if(drawInstanced){
     glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo);
@@ -204,14 +214,40 @@ void Circles::updateColorsBuffer(){
   }
 }
 
+/**************************************************
+ * Initialize the shader for the circles
+ **************************************************/
+int Circles::initShaders(){
+
+  shader_program = glCreateProgram();
+  //Load the correct shader from file
+  if(drawInstanced){
+    std::cout<<"Using glsl 4.00 with instanced drawing"<<std::endl;
+    loadShaders(shader_program,"shaders/circle4.00.vert","shaders/circle4.00.frag");
+  } else{
+    std::cout<<"Using glsl 1.10 without instanced drawing"<<std::endl;
+    loadShaders(shader_program,"shaders/circle1.10.vert","shaders/circle1.10.frag");
+  }
+
+  //Bind the arguments of the shader
+  glBindAttribLocation(shader_program, 0, "vertex_position");
+  glBindAttribLocation(shader_program, 1, "circle_position");
+  glBindAttribLocation(shader_program, 2, "circle_color");
+
+  glLinkProgram(shader_program);
+
+  check_GLSL_link(shader_program);
+}
 
 /*********************************************************************
  * Contructors and Destructor
  *********************************************************************/
 Circles::Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,bool drawInstanced):
-  radius(radius),numVertices(numVertices),numCircles(numCircles),drawInstanced(drawInstanced)
+  radius(radius),numVertices(numVertices),numCircles(numCircles),
+  drawInstanced(drawInstanced)
 {
 
+  //Initialize the Buffers
   if(drawInstanced){
     createInstancedBuffers();
   } else{
@@ -221,18 +257,22 @@ Circles::Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,bool 
   //Create one circle in a vertex fan, one point in the middle
   verticesFan();
 
+  //Initilize the shader
+  initShaders();
+  glUseProgram(shader_program);
 }
 
 Circles::~Circles(){
   delete vertices;
   delete pos;
   delete colors;
-  if(!drawInstanced)
+  if(!drawInstanced){
     delete vertices_copies;
-  delete pos_copies;
-  delete colors_copies;
-  delete first;
-  delete count;
+    delete pos_copies;
+    delete colors_copies;
+    delete first;
+    delete count;
+  }
 }
 
 /*********************************************************************
@@ -252,6 +292,8 @@ void Circles::movePos(GLfloat &&dx, GLfloat &&dy)
 {
   for(int i = 0; i < numCircles; i++){
     pos[i*2]   += dx;
+    //pos[i*2+1] += dy;
+    //Use this line for more fun
     pos[i*2+1] += (i%2?-1:1)*dy;
   }
 
@@ -267,7 +309,7 @@ void Circles::movePos(GLfloat &&dx, GLfloat &&dy)
 void Circles::setPos(GLfloat* newPos)
 {
   for(int i = 0; i < numCircles*2; i++){
-    pos[i] = pos[i];
+    pos[i] = newPos[i];
   }
 
   updatePosBuffer();
@@ -306,6 +348,7 @@ void hsl_to_rgb( GLfloat* rgb,GLfloat* hsl){
 }
 
 
+//Set the colors with different Hues, but the same saturation and lightness
 void Circles::setColorsID(){
   /*for(int i = 0; i < numCircles; i++){
     colors[i*3]   = .25 + .75*i/(numCircles-1.0); //Mostly red
@@ -332,7 +375,13 @@ void Circles::setColors(GLfloat* newColors)
 }
 
 
+/*********************************************************************
+ * Draw the Circles
+ *********************************************************************/
 int Circles::draw(){
+  //If we end up using multiple shaders, we'll need this
+  //glUseProgram(shader_program);
+
   glBindVertexArray(vao);
   // draw points from the currently bound VAO with current in-use shader
   if(drawInstanced){
@@ -342,31 +391,11 @@ int Circles::draw(){
     glMultiDrawArrays(GL_TRIANGLE_FAN,first,count,numCircles); 
     /*for(int i =0;i < numCircles;i++){
       glDrawArrays(GL_TRIANGLE_FAN, i*numVertices, numVertices);
-    }*/
+      }*/
   }
   //glDrawArrays(GL_TRIANGLE_FAN, 0, numVertices);
   return 0;
 
 }
 
-
-int Circles::initShaders(GLuint &shader_program)
-{
-  if(drawInstanced){
-    std::cout<<"Using glsl 4.00 with instanced drawing"<<std::endl;
-    loadShaders(shader_program,"shaders/vert4.00.glsl","shaders/frag4.00.glsl");
-  } else{
-    std::cout<<"Using glsl 1.10 without instanced drawing"<<std::endl;
-    loadShaders(shader_program,"shaders/vert1.10.glsl","shaders/frag1.10.glsl");
-  }
-
-  // insert location binding code here
-  glBindAttribLocation(shader_program, 0, "vertex_position");
-  glBindAttribLocation(shader_program, 1, "circle_position");
-  glBindAttribLocation(shader_program, 2, "circle_color");
-
-  glLinkProgram(shader_program);
-
-  check_GLSL_link(shader_program);
-}
 

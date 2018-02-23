@@ -16,8 +16,8 @@ void check_GLSL_compile(GLuint shader);
 void check_GLSL_link(GLuint shader_program);
 
 int loadShaders(GLuint &shader_program,
-	const std::string& vertFilename,
-	const std::string& fragFilename);
+    const std::string& vertFilename,
+    const std::string& fragFilename);
 
 #endif //LOAD_SHADERS_H_
 

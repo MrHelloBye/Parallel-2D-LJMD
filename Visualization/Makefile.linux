@@ -19,7 +19,8 @@ LINKING =  -ldl -lm -lglfw3 -lGLEW -lGL -lGLU
 
 #LINKING = -L/usr/local/lib -lXrandr -lXrender -lXi -lGLEW -lGLU -lm -lGL -lm -lpthread -ldl -ldrm -lXdamage -lXfixes -lX11-xcb -lxcb-glx -lxcb-dri2 -lXxf86vm -lXext -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lglfw3
 
-#LINKING =  -ldl -lm -lglfw -lGLEW -lGL -lGLU
+LINKING =  -L/usr/local/lib -lXrandr -lXrender -lXi -lGLEW -lGLU -lm -lGL -lm -lpthread -pthread -ldl -ldrm -lXdamage -lXfixes -lX11-xcb -lxcb-glx -lxcb-dri2 -lXxf86vm -lXext -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp
+
 
 
 SOURCES=main.cpp circles.cpp loadShaders.cpp
