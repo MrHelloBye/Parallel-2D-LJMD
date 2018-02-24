@@ -4,6 +4,7 @@
 *.xyz
 statistics.txt
 
+aclocal.m4
 autom4te.cache/
 Makefile
 config.log
