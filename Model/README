@@ -1,0 +1,11 @@
+This is a parallelized version of the 2D MD code using OpenMPI (Message Passing Interface).
+The parallelization is done via domain decomposition. Each processor has a subsystem for which it
+performs all calculations. When atoms move between domains, information is exchanged using Isend and Irecieve MPI calls.
+Mirror boundary conditions are applied for exterior system boundaries. A cutoff radius where force calculations byond the radius are ignored, is used to significantly speed up calculations.
+
+To run from terminal on Linux (must have OpenMPI installed)
+
+1. make
+2. mpirun -np [number of processors] MPI-md 
+
+Note: For stability, each processor's domain must be approximately square.

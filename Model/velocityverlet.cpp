@@ -9,10 +9,6 @@
 
 void VelocityVerlet::integrate(System &system, double dt) //passing by reference &system, passes using the address but doesn't create a variable (pointer) whose value = that address
 {
-    // double mass;
-
-    //std::cout << "mass in vv" <<mass <<std::endl;
-
     int nprocs, rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
@@ -28,29 +24,13 @@ void VelocityVerlet::integrate(System &system, double dt) //passing by reference
         //this operates on the vectors directly using vec3 class
         atom->velocity += atom->force*half_dt/mass;
         atom->position += atom->velocity*dt;  //NOTE: since v is computed 1st, this is actually x(t+dt) = x(t) + vt+0.5at^2 since v = v+0.5at
-        //std::cout<< atom->m_initial_position[0] << "atom INITIAL position" <<std::endl;  //initial positions seem fine...
-        //std::cout << atom->position[0] <<"atomposition in VV" <<std::endl;  //these positions are blown up...
-         //std::cout << atom->force[0] << "atom force" <<std::endl; //force is blown up
-
-       // if(atom->velocity[0] == 0){
-       //std::cout << "velocity in vv is ZERO" << atom->velocity[0] << "force is" << atom->force[0] << std::endl;
-            //give it a velocity!
-          //  atom->resetVelocityMaxwellian(UnitConverter::temperatureFromSI(600.));
-        //}
-
     }
 
-    system.applyPeriodicBoundaryConditions();
-   // system.applyMirrorBCs_inX(dt);
-
-
-    //send_atoms accepts a pointer, so declare a pointer(variable whose value = the memory address)
-    //System  * pt_system = &system; //assign it the address of system
+    system.applyMirrorBCs(dt);
 
     if(nprocs >1){
        send_atoms(&system);  //send and recieve atoms which have left their processor's domain
     }
-
 
     system.calculateForces(); // New positions, recompute forces
 

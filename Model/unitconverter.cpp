@@ -36,8 +36,8 @@ void UnitConverter::initializeMDUnits(double sigma, double epsilon) {
     //double L0 = 1e-10;
     double L0 = sigma*1.e-10;                // 1 particle diameter in SI [m]
     double kb = 1.3806488e-23;          // SI [J/K]
-    double E0eV = epsilon;            //4*epsilon (from coeff. in front of LJ) in in eV
-    double E0 = 1.60217657e-19*E0eV;    // convert epsilon to SI [J]
+    double E0eV = epsilon;            //epsilon (from coeff. in front of LJ) in in eV
+    double E0 = 1.60217657e-19*E0eV;    // was Ar value  convert epsilon to SI [J]
 
     UnitConverter::m0 = m0;
     UnitConverter::kb = kb;
