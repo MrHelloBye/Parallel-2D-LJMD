@@ -16,8 +16,8 @@ void send_atoms(System *system) {
         int decomp_dim = 0;  // 0 or 1, x or y direction of decomposition
 
 	int nprocs, rank;
-	MPI_Comm_size (MPI_COMM_WORLD, &nprocs);
-	MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+	MPI_Comm_size (system->comm_model, &nprocs);
+	MPI_Comm_rank (system->comm_model, &rank);
 	
 	// store number of atoms to send to and receive from the processor on the left and on the right
 	int num_to_left = 0;
@@ -124,10 +124,10 @@ void send_atoms(System *system) {
 	// send number of atoms
         //synthax: MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm, MPI_Request *request)
         //(starting address of data that sending (called buffer), # of elements in buffer, MPI data type, destination processor, message tag, communicator, pointer to the request)
-        MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req); // req will input pointer to beggining of req array --> req[0].
-        MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req+1);  //req+1 b/c req is pointer --> pts to req[1]
-        MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+2);
-        MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+3);
+        MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req); // req will input pointer to beggining of req array --> req[0].
+        MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req+1);  //req+1 b/c req is pointer --> pts to req[1]
+        MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, system->comm_model, req+2);
+        MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, system->comm_model, req+3);
         MPI_Waitall (4, req, stat);  //wait for all send and receive requests to be completed
 
 
@@ -139,10 +139,10 @@ void send_atoms(System *system) {
 
 
 
-         MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2);
-         MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2+1);
-         MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+2);
-         MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+3);
+         MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req2);
+         MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req2+1);
+         MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, system->comm_model, req2+2);
+         MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, system->comm_model, req2+3);
          MPI_Waitall (4, req2, stat2);
 
 
@@ -151,10 +151,10 @@ void send_atoms(System *system) {
 	
         // send atoms --> & here is b/c sendsing the vectors by address to MPI_Isend etc..
         /*
-        MPI_Isend(&to_left[0], num_to_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2);
-        MPI_Irecv(&from_left[0], num_from_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2+1);
-        MPI_Isend(&to_right[0], num_to_right, MPI_ATOM, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+2);
-        MPI_Irecv(&from_right[0], num_from_right, MPI_ATOM, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+3);
+        MPI_Isend(&to_left[0], num_to_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req2);
+        MPI_Irecv(&from_left[0], num_from_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, system->comm_model, req2+1);
+        MPI_Isend(&to_right[0], num_to_right, MPI_ATOM, (rank + 1) % nprocs, 1, system->comm_model, req2+2);
+        MPI_Irecv(&from_right[0], num_from_right, MPI_ATOM, (rank + 1) % nprocs, 1, system->comm_model, req2+3);
         MPI_Waitall (4, req2, stat2);
         */
 
@@ -211,5 +211,5 @@ void send_atoms(System *system) {
 
 
 	
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(system->comm_model);
 }

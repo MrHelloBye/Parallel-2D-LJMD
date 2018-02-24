@@ -34,7 +34,7 @@ using namespace chrono;
 //}
 
 
-int modelMain(int argc, char **argv)
+int modelMain(int argc, char **argv, MPI_Comm comm_model)
 {
    int my_id, nprocs;
     
@@ -97,8 +97,8 @@ int modelMain(int argc, char **argv)
 
     cout << "timestep in LJ units" <<dt <<endl;
 
+    System system(comm_model);
 
-    System system;
     system.createSCLattice(Total_systemSize,subsystemSize, latticeConstant, initialTemperature, mass, subsystemOrigin);
     //system.createFCCLattice(Total_systemSize, latticeConstant, initialTemperature, mass);
     //system.createRandompositionitions(num_particles, side_length, initialTemperature, mass);

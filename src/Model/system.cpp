@@ -9,7 +9,7 @@
 #include <algorithm> //need for sort etc.
 #include "global.h"
 
-System::System()   //constructor
+System::System(MPI_Comm comm_model):comm_model(comm_model)   //constructor
 {
  m_num_atoms = 0;
 }
@@ -135,8 +135,8 @@ void System::createFCCLattice(vec2 numberOfUnitCellsEachDimension, double lattic
 
     //each processor finds out what it's ID (AKA rank) is and how many processors there are
     int nprocs, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+    MPI_Comm_rank(comm_model, &rank);   //find ID
+    MPI_Comm_size(comm_model, &nprocs);  //find # of processors
 
     for(int i=0;i<numberOfUnitCellsEachDimension[0];i++){
         //i.e. i = 0,1...N_x-1
@@ -201,8 +201,8 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
     double x;
     //each processor finds out what it's ID (AKA rank) is and how many processors there are
     int nprocs, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+    MPI_Comm_rank(comm_model, &rank);   //find ID
+    MPI_Comm_size(comm_model, &nprocs);  //find # of processors
 
     x =rank*subsystemSize[0]*latticeConstant + 0.5*latticeConstant;  //initializes x at the right position for the processor's domain
 
@@ -366,8 +366,8 @@ std::vector <int> System::add_atoms (std::vector <Atom> new_atoms) { //accepts P
         std::vector <int> update_proc(natoms);
 
         int nprocs, rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+        MPI_Comm_rank(comm_model, &rank);   //find ID
+        MPI_Comm_size(comm_model, &nprocs);  //find # of processors
 
         //gets through here
 
@@ -403,8 +403,8 @@ void System::add_atoms (std::vector <double> new_atoms, double num_recieved) { /
         //std::vector <int> update_proc(natoms);
 
         int nprocs, rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+        MPI_Comm_rank(comm_model, &rank);   //find ID
+        MPI_Comm_size(comm_model, &nprocs);  //find # of processors
 
         //gets through here
 

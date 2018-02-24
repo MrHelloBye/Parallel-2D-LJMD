@@ -24,8 +24,11 @@ private:
     int m_num_atoms;
     //int m_sample_freq;  //no need to make this private b/c actually want to be able to change it
 
+
 public:
-    System();
+    const MPI_Comm comm_model;
+
+    System(MPI_Comm comm_model);
     ~System();
     int m_sample_freq;
     void createFCCLattice(vec2 Total_systemSize, double latticeConstant, double temperature,  double mass);

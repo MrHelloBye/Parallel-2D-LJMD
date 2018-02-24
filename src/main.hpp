@@ -5,6 +5,6 @@
 int viewMain(int argc,char** argv);
 #endif
 
-int modelMain(int argc,char** argv);
+int modelMain(int argc,char** argv,MPI_Comm comm_model);
 
 #endif //MAIN_HPP_

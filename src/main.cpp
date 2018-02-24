@@ -13,12 +13,24 @@ int main(int argc,char **argv){
 #ifdef VIEW_ENABLED
   if(my_id == 0){
     //Run the View on root
+    MPI_Comm comm_model;
+    MPI_Comm_split(MPI_COMM_WORLD,
+        MPI_UNDEFINED,my_id,&comm_model);
+
     viewMain(argc,argv);
   } else{
-    modelMain(argc,argv);
+    MPI_Comm comm_model;
+    MPI_Comm_split(MPI_COMM_WORLD,
+        1,my_id,&comm_model);
+
+    modelMain(argc,argv,comm_model);
   }
 #else
-    modelMain(argc,argv);
+  MPI_Comm comm_model;
+  MPI_Comm_split(MPI_COMM_WORLD,
+      1,my_id,&comm_model);
+
+  modelMain(argc,argv,comm_model);
 #endif
   MPI_Finalize();
 

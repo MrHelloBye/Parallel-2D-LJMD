@@ -14,8 +14,8 @@ void VelocityVerlet::integrate(System &system, double dt) //passing by reference
     //std::cout << "mass in vv" <<mass <<std::endl;
 
     int nprocs, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+    MPI_Comm_rank(system.comm_model, &rank);   //find ID
+    MPI_Comm_size(system.comm_model, &nprocs);  //find # of processors
 
 
     double half_dt = 0.5*dt;

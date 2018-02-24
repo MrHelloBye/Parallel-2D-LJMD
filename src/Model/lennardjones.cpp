@@ -45,8 +45,8 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
     int decomp_dim = 0;  // 0 or 1, x or y direction of decomposition
 
     int nprocs, rank;
-    MPI_Comm_size (MPI_COMM_WORLD, &nprocs);
-    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+    MPI_Comm_size (system.comm_model, &nprocs);
+    MPI_Comm_rank (system.comm_model, &rank);
 
     // Store number of atoms to send to and receive from the processor on the left and on the right
     int num_to_left = 0;
@@ -164,10 +164,10 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
     //send ghost atoms
      if (nprocs > 1) {
                 // Send ghost atoms to neighboring processor
-                MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req); //note: these formulas will pass i.e. from proc 0 to proc (max at right)...--> satisfy PBCs...
-                MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req+1);
-                MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+2);
-                MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+3);
+                MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, system.comm_model, req); //note: these formulas will pass i.e. from proc 0 to proc (max at right)...--> satisfy PBCs...
+                MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, system.comm_model, req+1);
+                MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, system.comm_model, req+2);
+                MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, system.comm_model, req+3);
                 MPI_Waitall (4, req, stat);
 
                 from_left.resize(num_from_left);
@@ -176,10 +176,10 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
                 //std::cout <<"num_from_left for ghosts" << num_from_left <<std::endl;
 
-                MPI_Isend(&to_left[0], num_to_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2);
-                MPI_Irecv(&from_left[0], num_from_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2+1);
-                MPI_Isend(&to_right[0], num_to_right, MPI_ATOM, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+2);
-                MPI_Irecv(&from_right[0], num_from_right, MPI_ATOM, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+3);
+                MPI_Isend(&to_left[0], num_to_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, system.comm_model, req2);
+                MPI_Irecv(&from_left[0], num_from_left, MPI_ATOM, (rank - 1 + nprocs) % nprocs, 1, system.comm_model, req2+1);
+                MPI_Isend(&to_right[0], num_to_right, MPI_ATOM, (rank + 1) % nprocs, 1, system.comm_model, req2+2);
+                MPI_Irecv(&from_right[0], num_from_right, MPI_ATOM, (rank + 1) % nprocs, 1, system.comm_model, req2+3);
                 MPI_Waitall (4, req2, stat2);
 
                 // Calculate interactions between new (ghost) atoms and atoms on processor
