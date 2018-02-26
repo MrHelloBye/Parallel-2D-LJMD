@@ -120,8 +120,10 @@ am___top_builddir__bin_parallel2DLJMD_OBJECTS = main.$(OBJEXT) \
 __top_builddir__bin_parallel2DLJMD_OBJECTS =  \
 	$(am___top_builddir__bin_parallel2DLJMD_OBJECTS)
 am__DEPENDENCIES_1 =
+@WITH_VIEW_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
+@WITH_VIEW_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 __top_builddir__bin_parallel2DLJMD_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_2)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -281,9 +283,11 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMain.cpp Model/send_atoms.cpp Model/statisticssampler.cpp Model/system.cpp Model/unitconverter.cpp Model/vec2.cpp Model/velocityverlet.cpp 
 @WITH_VIEW_TRUE@viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp View/hsl_to_rgb.cpp
-@WITH_VIEW_TRUE@viewLDADD = -L/usr/local/lib -lXrandr -lXrender -lXi -lGLEW -lGLU -lm -lGL -lm -lpthread -ldl -ldrm -lXdamage -lXfixes -lX11-xcb -lxcb-glx -lxcb-dri2 -lXxf86vm -lXext -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lglfw3
+@WITH_VIEW_TRUE@viewLDADD = $(GL_LIBS) $(GLEW_LIBS) $(GLFW_LIBS) 
+@WITH_VIEW_TRUE@viewCFLAGS = $(GL_CFLAGS) $(GLEW_CFLAGS) $(GLFW_CFLAGS) 
 __top_builddir__bin_parallel2DLJMD_SOURCES = main.cpp comms.cpp $(modelSources) $(viewSources)
 __top_builddir__bin_parallel2DLJMD_LDADD = $(viewLDADD)
+__top_builddir__bin_parallel2DLJMD_CFLAGS = $(viewCFLAGS)
 all: all-am
 
 .SUFFIXES:

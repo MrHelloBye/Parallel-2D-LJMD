@@ -3,7 +3,8 @@ modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMai
 
 if WITH_VIEW
 viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp View/hsl_to_rgb.cpp
-viewLDADD = -L/usr/local/lib -lXrandr -lXrender -lXi -lGLEW -lGLU -lm -lGL -lm -lpthread -ldl -ldrm -lXdamage -lXfixes -lX11-xcb -lxcb-glx -lxcb-dri2 -lXxf86vm -lXext -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lglfw3
+viewLDADD = $(GL_LIBS) $(GLEW_LIBS) $(GLFW_LIBS) 
+viewCFLAGS = $(GL_CFLAGS) $(GLEW_CFLAGS) $(GLFW_CFLAGS) 
 endif
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
@@ -12,3 +13,4 @@ bin_PROGRAMS = $(top_builddir)/bin/parallel2DLJMD
 
 __top_builddir__bin_parallel2DLJMD_SOURCES = main.cpp comms.cpp $(modelSources) $(viewSources)
 __top_builddir__bin_parallel2DLJMD_LDADD = $(viewLDADD)
+__top_builddir__bin_parallel2DLJMD_CFLAGS = $(viewCFLAGS)
