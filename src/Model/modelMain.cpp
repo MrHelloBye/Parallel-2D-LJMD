@@ -25,17 +25,16 @@
 #include <stdio.h> //for printf
 #include <mpi.h>  //get the mpi functions from here
 
+#include "../comms.hpp"
+
 
 using namespace std;
 using namespace chrono;
 
-int main(int argc, char **argv)
+int modelMain(int argc, char **argv)
 {
     int my_id, nprocs;
     
-    MPI_Init(&argc, &argv);  //initialize MPI environment: takes in arguments from the mpirun command
-    //everything past this point is executed on EACH processor in parallel
-
     //each processor finds out what it's ID (aka rank) is and how many processors there are
     MPI_Comm_rank(MPI_COMM_WORLD, &my_id);   //find ID
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
@@ -66,12 +65,6 @@ int main(int argc, char **argv)
     //using the more basic thermostat of sharp rescaling every 100 steps
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------
-    int *NumInBox_array;  //declare
-    int NumInBox = 0;
-    double * positions;  //stores positions of each domain
-    double * Allpositions;
-    MPI_Datatype stype;
-
     //Initialize MD units
     UnitConverter::initializeMDUnits(sigma, epsilon);
     //double mass = UnitConverter::massFromSI(6.63352088e-26); // mass in kg
@@ -113,8 +106,8 @@ int main(int argc, char **argv)
                 setw(20) << "PotentialEnergy" <<
                 setw(20) << "TotalEnergy" << endl;
     }else{
-        movie = fopen("movie.xyz","w+");
-        NumInBox_array = new int[nprocs]; //allocate memery only in proc 1, array for recieving number of particles in each procs domain
+        //movie = fopen("movie.xyz","w+");
+        //NumInBox_array = new int[nprocs]; //allocate memery only in proc 1, array for recieving number of particles in each procs domain
     }
 
     high_resolution_clock::time_point start2 = high_resolution_clock::now();
@@ -148,62 +141,12 @@ int main(int argc, char **argv)
                         setw(20) << statisticsSampler.potentialEnergy() <<
                         setw(20) << statisticsSampler.totalEnergy() << endl;
             }
-            NumInBox = system.num_atoms();
 
-            //positions = getPositions(system);
-
-            positions = new double[2*system.num_atoms()];
-            int i = 0, j=0;
-            for(Atom *atom : system.atoms()) {
-                positions[j] = system.atoms(i)->position[0];
-                positions[j+1] = system.atoms(i)->position[1];
-                i++;
-                j+=2;
-            }
+            //Send the model data to the view (root)
+            comms_sendModelData(system);
         }
 
-        //gather number of particles in each processor 1st
-        //MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
-        MPI_Gather(&NumInBox,1,MPI_INT,&NumInBox_array[0],1,MPI_INT,0,MPI_COMM_WORLD);
-        int offset=0;
-        int displs[nprocs];
-        int rcounts[nprocs];
-        int NumGlobal = 0;
-
-        if(my_id == 0){
-            //cout << "result of gather " << NumInBox_array[0] << " " << NumInBox_array[1] << " " << NumInBox_array[2] << endl;
-
-            //make array of displacements for MPI_Gatherv
-            for (int i=0;i<nprocs;i++){
-                displs[i] = offset;
-                offset += 2*NumInBox_array[i];
-                rcounts[i] = 2*NumInBox_array[i];
-                NumGlobal += NumInBox_array[i];
-            }
-            Allpositions = new double [2*NumGlobal];
-        }
-
-        //create MPI datatype to allow passing of varying sizes of arrays
-        MPI_Type_vector(NumInBox,2,2,MPI_DOUBLE,&stype);  //make vector for atom positions, 2 elements/each atom
-        MPI_Type_commit(&stype);
-
-        //Gatherv allows to recieve varying sizes of data
-        //MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype recvtype, int root, MPI_Comm comm)
-        MPI_Gatherv(&positions[0], 1, stype, Allpositions, rcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-        if(timestep % 100 ==0){
-            if(my_id ==0){
-                fprintf(movie,"%d \n", NumGlobal);
-                fprintf(movie,"%11.3f \n",timestep);
-                for(int i =0;i<NumGlobal;i++){
-                    fprintf(movie, "H \t %11.3f \t %11.3f \n",Allpositions[2*i],Allpositions[2*i+1]);
-                }
-                delete [] Allpositions;
-            }
-        }
     }//end of for loop
-
-    if(my_id ==0) fclose(movie);
 
     //timing
     high_resolution_clock::time_point finish2 = high_resolution_clock::now();

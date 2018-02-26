@@ -1,0 +1,31 @@
+Building
+============================================================
+To build with the model and view, run:
+./configure 
+make
+
+
+FIXME: disable-view not working
+To build without the view and just the model, run:
+./configure --disable-view
+
+To clear the files made using configure, for example when switching between
+building with and without a view run 
+make distclean
+
+If you need to add more sources files, add them to Makefile.am, then run
+autoreconf 
+before running ./configure again
+
+If ./configure has problems finding a C compiler, add you mpi C and C++
+compilers to the lines in configure.ac
+AC_PROG_CC([mpicc])
+AC_PROG_CXX([mpic++ mpicxx])
+And run autoreconf
+
+
+Running
+============================================================
+The binary parallel2DLJMD will be in bin. If built with the view, by default
+task 0 will run the view and rest will run with the model. If built with the
+view disabled, all mpi tasks will run the model

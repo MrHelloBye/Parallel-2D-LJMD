@@ -1,12 +1,6 @@
-//
-//  main.cpp
-//  OpenGL Schrodinger
-//
-//  Created by Liam Clink on 2/7/18.
-//
-//
+#ifndef CIRCLES_HPP_
+#define CIRCLES_HPP_
 
-// OpenGL practice
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -39,6 +33,8 @@ class Circles
 
     GLuint vao = 0;
 
+    GLuint shader_program = 0;
+
 
     //CPU side memory
     GLfloat *vertices = NULL;
@@ -54,28 +50,39 @@ class Circles
 
     //Helper Function to Generate Circles
     void verticesFan();
-    
+
     //Private OpenGL Related
     int createBuffers();
     int createInstancedBuffers();
 
+    int deleteBuffers();
+
+    int resizeNumCircles(int newNumCircles);
+
     void updateVerticesBuffer();
     void updatePosBuffer();
     void updateColorsBuffer();
+
+    int initShaders();
+
   public:
-    Circles(GLfloat &&radius, GLint &&numVertices, GLint &&numCircles,bool drawInstanced=false);
+    Circles(GLfloat radius, GLint numVertices, GLint numCircles,bool drawInstanced=false);
     ~Circles();
 
     //Manipulating positions
     void setPosLattice();
-    void setPos(GLfloat *newPos);
-    void movePos(GLfloat &&dx, GLfloat &&dy);
+    void setPos(float *newPos);
+    void movePos(GLfloat dx, GLfloat dy);
 
     //Manipulating colors
     void setColorsID();
-    void setColors(GLfloat *newPos);
+    void setColors(GLfloat *newColors);
+    void setHues(GLfloat *newHues);
+
+    void setPosAndHues(float *newPos,float *Hues,int newSize);
 
     //More OpenGL related
     int draw();
-    int initShaders(GLuint &shader_program);
 };
+
+#endif //CIRCLES_HPP_
