@@ -52,3 +52,21 @@ void IO::saveState(System &system, StatisticsSampler &statisticsSampler) //stati
         }
     }
 }
+
+//======================
+//the below functions are not members of the class
+
+double * getPositions(System &system){
+    double positions[2*system.num_atoms()];
+    int i = 0;
+     for(Atom *atom : system.atoms()) {
+         positions[i] = system.atoms(i)->position[0];
+         positions[i+1] = system.atoms(i+1)->position[1];
+         i+=2;
+     }
+
+     return positions;
+
+}
+
+

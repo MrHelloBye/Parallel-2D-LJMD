@@ -22,7 +22,6 @@ private:
     double m_time = 0;
     int m_steps = 0;
     int m_num_atoms;
-    //int m_sample_freq;  //no need to make this private b/c actually want to be able to change it
 
 public:
 
@@ -47,7 +46,7 @@ public:
 
     int delete_atoms (std::vector <int> indices);				//!< Pop atoms with local indices from local storage
 
-    std::map <int, int> glob_to_loc_id_;  //!< Maps global sys_index to the local index of m_atoms an atom is stored at on each processor; the opposite conversion can be done with lookup of Atom::sys_index
+    //std::map <int, int> glob_to_loc_id_;  //!< Maps global sys_index to the local index of m_atoms an atom is stored at on each processor; the opposite conversion can be done with lookup of Atom::sys_index
 
     // Setters and getters
     std::vector<Atom *> &atoms() { return m_atoms; } // Calling atoms(): Returns a reference to the std::vector of atom pointers

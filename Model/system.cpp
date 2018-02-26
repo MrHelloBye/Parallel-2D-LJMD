@@ -41,34 +41,29 @@ void System::applyPeriodicBoundaryConditions() {
             }
         }
         std::cout <<"syssize in pbc" << m_systemSize[0] <<" " <<m_systemSize[1] <<std::endl;
-
-
     }
 }
 
 void System::applyMirrorBCs(double dt){
     for(Atom *atom : atoms()) {
         for(int j = 0;j<2;j++){
-             if (atom->position[j] <  0. ) {
-                 //we go back to the previous x position, and keep the y position
-                 //also we reverse sign on X component of velocity
-                 // std::cout << "test mirror bc's BEFORE mirroring" << atom->position[0] <<"time step" << steps() << std::endl;
-                 atom->position[j] -=dt*atom->velocity[j];
-                 //atom->position[0] = 0.01;  //POOR MAN'S mirror BCs
+            if (atom->position[j] <  0. ) {
+                //we go back to the previous x position, and keep the y position
+                //also we reverse sign on X component of velocity
+                // std::cout << "test mirror bc's BEFORE mirroring" << atom->position[0] <<"time step" << steps() << std::endl;
+                atom->position[j] -=dt*atom->velocity[j];
+                //atom->position[0] = 0.01;  //POOR MAN'S mirror BCs
                 // std::cout << "test mirror bc's" << atom->position[0] <<std::endl; // not working properly it seems--> after mirroring, stll have negative positoin...
-                 atom->velocity[j] = - atom->velocity[j];
-
-             }
-
-             if(atom->position[j] >  m_systemSize[j]){
+                atom->velocity[j] = - atom->velocity[j];
+            }
+            if(atom->position[j] >  m_systemSize[j]){
                 // atom->position[j] = m_systemSize[j] -0.01;  //POOR MAN'S mirror BCs
-                  atom->position[j] -=dt*atom->velocity[j];
+                atom->position[j] -=dt*atom->velocity[j];
                 // std::cout << "test mirror bc's" << atom->position[0] <<std::endl; // not working properly it seems--> after mirroring, stll have negative positoin...
-                 atom->velocity[j] = - atom->velocity[j];
-             }
+                atom->velocity[j] = - atom->velocity[j];
+            }
         }
-
-}
+    }
 }
 
 
@@ -119,7 +114,7 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
 
-    x =rank*subsystemSize[0]*latticeConstant + 0.5*latticeConstant;  //initializes x at the right position for the processor's domain
+    x =(rank-1)*subsystemSize[0]*latticeConstant + 0.5*latticeConstant;  //initializes x at the right position for the processor's domain
 
     for(int i=0;i<subsystemSize[0];i++){  // i = 1 and < b/c can't have atoms on both boundaries--> will blow up!
         //i.e. i = 0,1...N_x-1
@@ -192,6 +187,7 @@ void System::calculateForces() {
 
 void System::step(double dt) {
     m_integrator.integrate(*this, dt);  //this calls velocityverlet.cpp
+    //std::cout << "system line 192" <<std::endl;
     m_steps++;
     m_time += dt;
 
@@ -239,15 +235,10 @@ void System::add_atoms (std::vector <double> new_atoms, double num_recieved) { /
     //double mass;
     //std::vector <int> update_proc(natoms);
 
-    int nprocs, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
+    //int nprocs, rank;
+    //MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
+    //MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
 
-    //gets through here
-
-    //std::cout <<"index at line 248"<< index <<std::endl;
-    //std::cout <<"natoms at line 248"<< natoms <<std::endl;  //finds that there are 100 new atoms --> ok.. make sense for 2 processors...
-    //issue is that it might try to add atoms that already are in the processor AGAIN
     for (int i = 0; i < num_recieved; ++i) {
 
         int index =4*i;

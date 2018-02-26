@@ -60,7 +60,6 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
     MPI_Request req[4], req2[4];
     MPI_Status stat[4], stat2[4];
     
-    
    //First calculate interactions btw. all atoms in the processor's domain
     for(int current_index=0; current_index<system.num_atoms()-1; current_index++){  //-1 b/c don't need to calculate pairs when get to last atom
         Atom *current_atom = system.atoms(current_index);  //system.atoms(index) returns the pointer to the atom corresponding to index
@@ -112,35 +111,37 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
         if (nprocs == 2) {
             //std::cout << "check positions" << system.atoms(current_index)->position[0] << std::endl;
 
-            if (system.atoms(current_index)->position[decomp_dim] < rank * sys_size[decomp_dim] / nprocs + skin_cutoff) {
+            if (system.atoms(current_index)->position[decomp_dim] < (rank-1) * sys_size[decomp_dim] / (nprocs-1) + skin_cutoff) {
                 //std::cout << "test if" << rank * sys_size[decomp_dim] / nprocs + skin_cutoff <<std::endl;
                 to_left.push_back(system.atoms(current_index)->position[0]);
                 to_left.push_back(system.atoms(current_index)->position[1]);
                 //note: don't need velocities for ghost atoms
                 num_to_left++;
             }
-            else if  (system.atoms(current_index)->position[decomp_dim] > (rank + 1) * sys_size[decomp_dim] / nprocs - skin_cutoff) {
+            else if  (system.atoms(current_index)->position[decomp_dim] > (rank ) * sys_size[decomp_dim] / (nprocs-1) - skin_cutoff) {
                // std::cout << "test if" << (rank + 1) * sys_size[decomp_dim] / nprocs - skin_cutoff <<std::endl;
                 to_right.push_back(system.atoms(current_index)->position[0]);
                 to_right.push_back(system.atoms(current_index)->position[1]);
                 num_to_right++;
             }
         } else {
-            if (system.atoms(current_index)->position[decomp_dim] < rank * sys_size[decomp_dim] / nprocs + skin_cutoff) {
+            if (system.atoms(current_index)->position[decomp_dim] < (rank-1) * sys_size[decomp_dim] / (nprocs-1) + skin_cutoff) {
                 to_left.push_back(system.atoms(current_index)->position[0]);
                 to_left.push_back(system.atoms(current_index)->position[1]);
                 num_to_left++;
             }
-            if  (system.atoms(current_index)->position[decomp_dim] > (rank + 1) * sys_size[decomp_dim] / nprocs - skin_cutoff) {
+            if  (system.atoms(current_index)->position[decomp_dim] > (rank ) * sys_size[decomp_dim] / (nprocs-1) - skin_cutoff) {
                 to_right.push_back(system.atoms(current_index)->position[0]);
                 to_right.push_back(system.atoms(current_index)->position[1]);
                 num_to_right++;
             }
         }
 
+        /*
         if(system.steps() % 100 ==0){
             //std::cout <<"forces before add ghosts contribution" << current_atom->force[0] << " " << current_atom->force[1] <<std::endl;
         }
+        */
             
     }//end of outer loop
 
@@ -148,17 +149,21 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
     // std::cout <<"ghost position BEFORE send to right" << to_right[2] <<" " <<to_right[3] <<std::endl;
     //std::cout <<"ghost position BEFORE send to left" <<to_left[0] <<" " <<to_left[1]  <<"proc" << rank <<std::endl;
     // std::cout <<"ghost position BEFORE send to left" <<to_left[2]<<" " <<to_left[3] <<std::endl;
-    // std::cout << "num to right" <<num_to_right <<"proc" << rank <<std::endl;
-    // std::cout << "num to left" <<num_to_left <<"proc" << rank <<std::endl;
+    //std::cout << "num to right" <<num_to_right <<"proc" << rank <<std::endl;
+     //std::cout << "num to left" <<num_to_left <<"proc" << rank <<std::endl;
 
 
     //send ghost atoms
      if (nprocs > 1) {
+
+         int ln =  (rank -1- 1 + nprocs-1) % (nprocs-1)+1;
+         int rn = (rank ) %( nprocs-1)+1;
+
          // Send ghost atoms to neighboring processor
-         MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req); //note: these formulas will pass i.e. from proc 0 to proc (max at right)...--> satisfy PBCs...
-         MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req+1);
-         MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+2);
-         MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+3);
+         MPI_Isend(&num_to_left, 1, MPI_INT, ln, 10*rank + ln, MPI_COMM_WORLD, req); //note: these formulas will pass i.e. from proc 0 to proc (max at right)...--> satisfy PBCs...
+         MPI_Irecv(&num_from_left, 1, MPI_INT, ln, 10*ln +rank, MPI_COMM_WORLD, req+1);
+         MPI_Isend(&num_to_right, 1, MPI_INT, rn, 10*rank + rn, MPI_COMM_WORLD, req+2);
+         MPI_Irecv(&num_from_right, 1, MPI_INT, rn, 10*rn +rank, MPI_COMM_WORLD, req+3);
          MPI_Waitall (4, req, stat);
 
          //resize to fit x and y positions
@@ -168,11 +173,14 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
          //std::cout <<"num_from_left for ghosts" << num_from_left <<std::endl;
 
-         MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2);
-         MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2+1);
-         MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+2);
-         MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+3);
+         MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, ln, 10*rank + ln, MPI_COMM_WORLD, req2);
+         MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, ln, 10*ln +rank, MPI_COMM_WORLD, req2+1);
+         MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, rn, 10*rank + rn, MPI_COMM_WORLD, req2+2);
+         MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, rn, 10*rn +rank, MPI_COMM_WORLD, req2+3);
          MPI_Waitall (4, req2, stat2);
+
+
+         //std::cout <<"fin send ghosts" <<std::endl;
 
          // Calculate interactions between new (ghost) atoms and atoms on processor
          for (int current_index=0; current_index!=system.num_atoms(); ++current_index) {
@@ -258,7 +266,7 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
                 to_left.clear();
                 to_right.clear();
 
-                MPI_Barrier(MPI_COMM_WORLD);
+                //MPI_Barrier(MPI_COMM_WORLD);
         }//end of if(nprocs>1)
 }
 

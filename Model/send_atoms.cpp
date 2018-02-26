@@ -42,9 +42,9 @@ void send_atoms(System *system) {
 	int proc_to;
         for (int i=0; i!=system->num_atoms(); ++i) {   //-> are used b/c
 		// calculate the processor for each atom
-                proc_to = floor(system->atoms(i)->position[decomp_dim]/ sim_size[decomp_dim] * nprocs);
+                proc_to = floor(system->atoms(i)->position[decomp_dim]/ sim_size[decomp_dim] * (nprocs-1));
 
-		if (proc_to == (rank - 1 + nprocs) % nprocs) {
+                if (proc_to == (rank -1- 1 + nprocs-1) % (nprocs-1)) {
                         num_to_left++;
                         to_left.push_back(system->atoms(i)->position[0]);
                         to_left.push_back(system->atoms(i)->position[1]);
@@ -55,7 +55,7 @@ void send_atoms(System *system) {
 
                         to_delete.push_back(i);  //using erase, requires an iterator //never gets sent anywhere-< just for cucrrent proc
 		}
-		else if (proc_to == (rank + 1) % nprocs) {
+                else if (proc_to == (rank ) % (nprocs-1)) {
 			num_to_right++;
                         to_right.push_back(system->atoms(i)->position[0]);
                         to_right.push_back(system->atoms(i)->position[1]);
@@ -63,21 +63,24 @@ void send_atoms(System *system) {
                         to_right.push_back(system->atoms(i)->velocity[1]);
                         to_delete.push_back(i);
 		}
-		else if (proc_to != rank) {
-                       // std::cout <<"Atom moved too many boxes" << proc_to << std::endl;
+                else if (proc_to != rank) {
+                        //std::cout <<"Atom moved too many boxes" << proc_to << std::endl;
                 }
 	}
 
 
 	// send number of atoms
+        int ln =  (rank -1- 1 + nprocs-1) % (nprocs-1)+1;
+        int rn = (rank ) %( nprocs-1)+1;
+
         //synthax: MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm, MPI_Request *request)
         //(starting address of data that sending (called buffer), # of elements in buffer, MPI data type, destination processor, message tag, communicator, pointer to the request)
-        MPI_Isend(&num_to_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req); // req will input pointer to beggining of req array --> req[0].
-        MPI_Irecv(&num_from_left, 1, MPI_INT, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req+1);  //req+1 b/c req is pointer --> pts to req[1]
-        MPI_Isend(&num_to_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+2);
-        MPI_Irecv(&num_from_right, 1, MPI_INT, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req+3);
-        MPI_Waitall (4, req, stat);  //wait for all send and receive requests to be completed
 
+        MPI_Isend(&num_to_left, 1, MPI_INT, ln, 10*rank + ln, MPI_COMM_WORLD, req); //note: these formulas will pass i.e. from proc 0 to proc (max at right)...--> satisfy PBCs...
+        MPI_Irecv(&num_from_left, 1, MPI_INT, ln, 10*ln +rank, MPI_COMM_WORLD, req+1);
+        MPI_Isend(&num_to_right, 1, MPI_INT, rn, 10*rank + rn, MPI_COMM_WORLD, req+2);
+        MPI_Irecv(&num_from_right, 1, MPI_INT, rn, 10*rn +rank, MPI_COMM_WORLD, req+3);
+        MPI_Waitall (4, req, stat);
 
         //SENDING ATOM INFORMATION AS SIMPLY 4 doubles FOR EACH ATOM!! rx, ry, vx, vy
 
@@ -85,10 +88,10 @@ void send_atoms(System *system) {
         from_left.resize(4*num_from_left);
         from_right.resize(4*num_from_right);
 
-        MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2);
-        MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, (rank - 1 + nprocs) % nprocs, 1, MPI_COMM_WORLD, req2+1);
-        MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+2);
-        MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, (rank + 1) % nprocs, 1, MPI_COMM_WORLD, req2+3);
+        MPI_Isend(&to_left[0], to_left.size(), MPI_DOUBLE, ln, 10*rank + ln, MPI_COMM_WORLD, req2);
+        MPI_Irecv(&from_left[0], from_left.size(), MPI_DOUBLE, ln, 10*ln +rank, MPI_COMM_WORLD, req2+1);
+        MPI_Isend(&to_right[0], to_right.size(), MPI_DOUBLE, rn, 10*rank + rn, MPI_COMM_WORLD, req2+2);
+        MPI_Irecv(&from_right[0], from_right.size(), MPI_DOUBLE, rn, 10*rn +rank, MPI_COMM_WORLD, req2+3);
         MPI_Waitall (4, req2, stat2);
 
         // add atoms to system
@@ -105,5 +108,5 @@ void send_atoms(System *system) {
         from_left.clear();
         to_delete.clear();
 
-        MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Barrier(MPI_COMM_WORLD);
 }

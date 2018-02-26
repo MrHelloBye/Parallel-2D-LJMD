@@ -11,7 +11,6 @@ private:
     double m_four_epsilon = 4.0*m_epsilon;
     double m_twntyfour_epsilon = 24.0*m_epsilon;
 
-
 public:
     LennardJones() { }
     void calculateForces(class System &system);

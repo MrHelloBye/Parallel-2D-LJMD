@@ -3,7 +3,7 @@
 FLAGS = -O2 -Wall
 
 # Here we make the executable file
-SRCS =   main.cpp atom.cpp io.cpp lennardjones.cpp statisticssampler.cpp system.cpp unitconverter.cpp vec2.cpp velocityverlet.cpp send_atoms.cpp
+SRCS =   main.cpp atom.cpp io.cpp lennardjones.cpp statisticssampler.cpp system.cpp unitconverter.cpp vec2.cpp velocityverlet.cpp send_atoms.cpp 
 OBJS = $(subst .cpp,.o,$(SRCS))
 all: MPI-md
 

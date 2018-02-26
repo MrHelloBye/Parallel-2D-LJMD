@@ -18,4 +18,9 @@ public:
     void close();
 
 };
+
+
+double * getPositions(System &system);
+
+
 #endif
