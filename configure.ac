@@ -20,33 +20,34 @@ AC_CHECK_LIB([m],[sqrt])
 #AC_CHECK_LIB([glfw], [glfwInit])
 #AC_CHECK_LIB([glfw3], [glfwCreateWindow])
 #AC_CHECK_LIB([GLEW], [glewInit])
-#AC_CHECK_LIB([GL], [glCreateShader])
+AC_CHECK_LIB(dl, [dlopen])
 
 
 AC_ARG_ENABLE(view,
-  [ --disable-view   Disable compilation of view and controller, compile only the model],
-  [case "${enableval}" in
-     yes | no ) WITH_VIEW="${enableval}" ;;
-     *) AC_MSG_ERROR(bad value ${enableval} for --disable-view) ;;
-   esac],
-  [WITH_VIEW="yes"]
-)
+	      [ --disable-view   Disable compilation of view and controller, compile only the model],
+	      [case "${enableval}" in
+	       yes | no ) WITH_VIEW="${enableval}" ;;
+	       *) AC_MSG_ERROR(bad value ${enableval} for --disable-view) ;;
+       esac],
+       [WITH_VIEW="yes"]
+       )
 
 
 AM_CONDITIONAL([WITH_VIEW], [test "x$WITH_VIEW" = "xyes"])
 
+
 # Define VIEW in config.h if we're going to compile against it
 if test "x$WITH_VIEW" = "xyes"; then
-    AC_DEFINE([VIEW_ENABLED], 1)
+	AC_DEFINE([VIEW_ENABLED], 1)
 	AC_DEFINE_UNQUOTED([SHADERS_PATH],"`pwd`/src/View/shaders/")
 
-    AC_MSG_NOTICE([View enabled])
+	AC_MSG_NOTICE([View enabled])
 
-	PKG_CHECK_MODULES(GL, [gl glu], ,[AC_MSG_WARN([GL not found: $GL_PKG_ERRORS])])
+	PKG_CHECK_MODULES(GL,gl glu x11 xi xrandr xxf86vm, ,[AC_MSG_WARN([GL not found: $GL_PKG_ERRORS])])
 	PKG_CHECK_MODULES(GLEW, [glew], ,[AC_MSG_WARN([GLEW not found: $GLEW_PKG_ERRORS])])
 	PKG_CHECK_MODULES(GLFW, [glfw3], ,[AC_MSG_WARN([GLFW not found: $GLFW_PKG_ERRORS])])
 else
-    AC_MSG_NOTICE([View disabled])
+	AC_MSG_NOTICE([View disabled])
 fi
 
 
@@ -63,9 +64,9 @@ AC_TYPE_UINT64_T
 AC_CHECK_FUNCS([floor pow sqrt])
 
 AC_CONFIG_FILES([
- Makefile
- src/Makefile
-])
+		 Makefile
+		 src/Makefile
+		 ])
 
 
 AC_OUTPUT

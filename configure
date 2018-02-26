@@ -709,6 +709,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -794,6 +795,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1046,6 +1048,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1183,7 +1194,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1336,6 +1347,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -4230,15 +4242,59 @@ fi
 #AC_CHECK_LIB([glfw], [glfwInit])
 #AC_CHECK_LIB([glfw3], [glfwCreateWindow])
 #AC_CHECK_LIB([GLEW], [glewInit])
-#AC_CHECK_LIB([GL], [glCreateShader])
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
+$as_echo_n "checking for dlopen in -ldl... " >&6; }
+if ${ac_cv_lib_dl_dlopen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlopen ();
+int
+main ()
+{
+return dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_dl_dlopen=yes
+else
+  ac_cv_lib_dl_dlopen=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_dlopen" >&5
+$as_echo "$ac_cv_lib_dl_dlopen" >&6; }
+if test "x$ac_cv_lib_dl_dlopen" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDL 1
+_ACEOF
+
+  LIBS="-ldl $LIBS"
+
+fi
+
 
 
 # Check whether --enable-view was given.
 if test "${enable_view+set}" = set; then :
   enableval=$enable_view; case "${enableval}" in
-     yes | no ) WITH_VIEW="${enableval}" ;;
-     *) as_fn_error $? "bad value ${enableval} for --disable-view" "$LINENO" 5 ;;
-   esac
+	       yes | no ) WITH_VIEW="${enableval}" ;;
+	       *) as_fn_error $? "bad value ${enableval} for --disable-view" "$LINENO" 5 ;;
+       esac
 else
   WITH_VIEW="yes"
 
@@ -4255,16 +4311,17 @@ else
 fi
 
 
+
 # Define VIEW in config.h if we're going to compile against it
 if test "x$WITH_VIEW" = "xyes"; then
-    $as_echo "#define VIEW_ENABLED 1" >>confdefs.h
+	$as_echo "#define VIEW_ENABLED 1" >>confdefs.h
 
 	cat >>confdefs.h <<_ACEOF
 #define SHADERS_PATH "`pwd`/src/View/shaders/"
 _ACEOF
 
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: View enabled" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: View enabled" >&5
 $as_echo "$as_me: View enabled" >&6;}
 
 
@@ -4389,19 +4446,19 @@ $as_echo "no" >&6; }
 fi
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gl glu" >&5
-$as_echo_n "checking for gl glu... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GL" >&5
+$as_echo_n "checking for GL... " >&6; }
 
 if test -n "$GL_CFLAGS"; then
     pkg_cv_GL_CFLAGS="$GL_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gl glu\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gl glu") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gl glu x11 xi xrandr xxf86vm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gl glu x11 xi xrandr xxf86vm") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GL_CFLAGS=`$PKG_CONFIG --cflags "gl glu" 2>/dev/null`
+  pkg_cv_GL_CFLAGS=`$PKG_CONFIG --cflags "gl glu x11 xi xrandr xxf86vm" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -4413,12 +4470,12 @@ if test -n "$GL_LIBS"; then
     pkg_cv_GL_LIBS="$GL_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gl glu\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gl glu") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gl glu x11 xi xrandr xxf86vm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gl glu x11 xi xrandr xxf86vm") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GL_LIBS=`$PKG_CONFIG --libs "gl glu" 2>/dev/null`
+  pkg_cv_GL_LIBS=`$PKG_CONFIG --libs "gl glu x11 xi xrandr xxf86vm" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -4430,7 +4487,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -4439,9 +4496,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gl glu" 2>&1`
+	        GL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gl glu x11 xi xrandr xxf86vm" 2>&1`
         else
-	        GL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gl glu" 2>&1`
+	        GL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gl glu x11 xi xrandr xxf86vm" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GL_PKG_ERRORS" >&5
@@ -4449,7 +4506,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GL not found: $GL_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GL not found: $GL_PKG_ERRORS" >&2;}
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GL not found: $GL_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GL not found: $GL_PKG_ERRORS" >&2;}
@@ -4462,8 +4519,8 @@ $as_echo "yes" >&6; }
 fi
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for glew" >&5
-$as_echo_n "checking for glew... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GLEW" >&5
+$as_echo_n "checking for GLEW... " >&6; }
 
 if test -n "$GLEW_CFLAGS"; then
     pkg_cv_GLEW_CFLAGS="$GLEW_CFLAGS"
@@ -4503,7 +4560,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -4522,7 +4579,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GLEW not found: $GLEW_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GLEW not found: $GLEW_PKG_ERRORS" >&2;}
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GLEW not found: $GLEW_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GLEW not found: $GLEW_PKG_ERRORS" >&2;}
@@ -4535,8 +4592,8 @@ $as_echo "yes" >&6; }
 fi
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for glfw3" >&5
-$as_echo_n "checking for glfw3... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GLFW" >&5
+$as_echo_n "checking for GLFW... " >&6; }
 
 if test -n "$GLFW_CFLAGS"; then
     pkg_cv_GLFW_CFLAGS="$GLFW_CFLAGS"
@@ -4576,7 +4633,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -4595,7 +4652,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GLFW not found: $GLFW_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GLFW not found: $GLFW_PKG_ERRORS" >&2;}
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GLFW not found: $GLFW_PKG_ERRORS" >&5
 $as_echo "$as_me: WARNING: GLFW not found: $GLFW_PKG_ERRORS" >&2;}
@@ -4607,7 +4664,7 @@ $as_echo "yes" >&6; }
 
 fi
 else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: View disabled" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: View disabled" >&5
 $as_echo "$as_me: View disabled" >&6;}
 fi
 
