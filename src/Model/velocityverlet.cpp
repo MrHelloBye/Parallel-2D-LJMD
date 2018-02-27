@@ -30,6 +30,7 @@ void VelocityVerlet::integrate(System &system, double dt) //passing by reference
     }
 
     system.applyMirrorBCs(dt);
+    //system.applyPeriodicBoundaryConditions();
 
     if(nprocs >1){
        send_atoms(&system);  //send and recieve atoms which have left their processor's domain

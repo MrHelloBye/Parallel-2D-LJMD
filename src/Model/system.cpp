@@ -40,7 +40,7 @@ void System::applyPeriodicBoundaryConditions() {
                 atom->num_bndry_crossings[j] += 1;    //crossing right or top boundary is counted as +1 crossing
             }
         }
-        std::cout <<"syssize in pbc" << m_systemSize[0] <<" " <<m_systemSize[1] <<std::endl;
+        //std::cout <<"syssize in pbc" << m_systemSize[0] <<" " <<m_systemSize[1] <<std::endl;
     }
 }
 
@@ -137,7 +137,7 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
     //this sets the TOTAL system size--> is used for PBCs which are at the outer boundaries
     setSystemSize(latticeConstant*Total_systemSize ); //system size set by multiply vec2 # of unit cells by latticeConstant
     //vec2 include_bndry(0.001,0.001);  //will add to SystemSize so include bndry for domain distributions among processors in SimSize
-    setSimSize(Total_systemSize*latticeConstant);
+    //setSimSize(Total_systemSize*latticeConstant);
     //setSimSize(Total_systemSize*latticeConstant + include_bndry);
     std::cout<<"system size = " << m_systemSize <<std::endl;
     std::cout<<"num_atoms = " << num_atoms() <<std::endl;

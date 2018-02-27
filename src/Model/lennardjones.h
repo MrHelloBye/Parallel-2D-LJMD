@@ -1,6 +1,8 @@
 #ifndef LENNARDJONES_H
 #define LENNARDJONES_H
 
+#include "extpotential.h"
+
 class LennardJones
 {
 private:
@@ -10,6 +12,7 @@ private:
     double m_potentialEnergy = 0;
     double m_four_epsilon = 4.0*m_epsilon;
     double m_twntyfour_epsilon = 24.0*m_epsilon;
+
 
 public:
     LennardJones() { }
