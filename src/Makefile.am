@@ -2,7 +2,7 @@
 modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMain.cpp Model/send_atoms.cpp Model/statisticssampler.cpp Model/system.cpp Model/unitconverter.cpp Model/vec2.cpp Model/velocityverlet.cpp 
 
 if WITH_VIEW
-viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp View/hsl_to_rgb.cpp
+viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp View/hsl_to_rgb.cpp Controller/controller.cpp Controller/controllerState.cpp
 viewLDADD = $(GL_LIBS) $(GLEW_LIBS) $(GLFW_LIBS) 
 viewCFLAGS = $(GL_CFLAGS) $(GLEW_CFLAGS) $(GLFW_CFLAGS) 
 endif

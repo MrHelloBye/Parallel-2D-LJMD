@@ -20,6 +20,7 @@
 
 #include "circles.hpp"
 #include "../comms.hpp"
+#include "../Controller/controller.hpp"
 
 void reshape(int, int);
 void check_GLSL_compile(GLuint shader);
@@ -113,6 +114,8 @@ int viewMain(int argc,char** argv)
   float* hue_buf = new float[numAtoms]; 
   int atomCounts[nprocs];
 
+  Controller controller;
+
 
   int width, height;
   //Resize viewport to match window
@@ -127,6 +130,7 @@ int viewMain(int argc,char** argv)
   double t, dt, t_old;
   t_old = glfwGetTime() - 0.01;
 
+  double t_lastControllerEcho = t_old;
 
   //Draw in a loop
   while(!glfwWindowShouldClose(window))
@@ -139,11 +143,21 @@ int viewMain(int argc,char** argv)
     dt = t-t_old;
     t_old = t;
 
+    if(t - t_lastControllerEcho > 1.0){
+      t_lastControllerEcho = t;
+      std::cout <<"View's Controller: "<< controller.getState()<<std::endl;
+    }
+
     //Move Positions
     //circles.movePos(dt*CIRCLE_SPEED, dt*CIRCLE_SPEED);
 
     //Get model data
     comms_gatherModelData(&pos_buf,&hue_buf,atomCounts,numAtoms);
+
+    //Send controller data
+    controller.readState();
+    controller.commState();
+
 
     circles.setPosAndHues(pos_buf,hue_buf,numAtoms);
 

@@ -26,6 +26,7 @@
 #include <mpi.h>  //get the mpi functions from here
 
 #include "../comms.hpp"
+#include "../Controller/controllerState.hpp"
 
 
 using namespace std;
@@ -112,6 +113,8 @@ int modelMain(int argc, char **argv)
 
     high_resolution_clock::time_point start2 = high_resolution_clock::now();
 
+    ControllerState controllerState;
+
     for(int timestep=0; timestep< N_time_steps; timestep++) {
         if(my_id != 0){
             system.step(dt);  //only do timestepping for non-root procs
@@ -133,17 +136,21 @@ int modelMain(int argc, char **argv)
 
             if( timestep % 100 == 0 ) {
                 // Print the timestep and system properties every 100 timesteps
-                cout << setw(20) << system.steps() <<
+                /*cout << setw(20) << system.steps() <<
                         setw(20) << system.time() <<
                         setw(20) << statisticsSampler.temperature() <<
                         setw(20) << statisticsSampler.kineticEnergy() <<
                         setw(20) << "proc" << my_id <<
                         setw(20) << statisticsSampler.potentialEnergy() <<
-                        setw(20) << statisticsSampler.totalEnergy() << endl;
+                        setw(20) << statisticsSampler.totalEnergy() << endl;*/
+                cout<<"Model: " <<my_id<<" Controller: "<<controllerState<<endl;
             }
 
             //Send the model data to the view (root)
             comms_sendModelData(system);
+
+            //Get the controller state
+            comms_recvControllerState(&controllerState);
         }
 
     }//end of for loop

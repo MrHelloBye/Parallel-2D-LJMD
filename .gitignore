@@ -15,5 +15,7 @@ src/Model/.deps/
 src/Model/.dirstamp
 src/View/.deps/
 src/View/.dirstamp
+src/Controller/.deps/
+src/Controller/.dirstamp
 src/parallel2DLJMD
 bin/
