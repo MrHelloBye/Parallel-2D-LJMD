@@ -71,7 +71,7 @@ void send_atoms(System *system) {
 
 	// send number of atoms
         int ln =  (rank -1- 1 + nprocs-1) % (nprocs-1)+1;
-        int rn = (rank ) %( nprocs-1)+1;
+         int rn = (rank ) %( nprocs-1)+1;
 
         //synthax: MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm, MPI_Request *request)
         //(starting address of data that sending (called buffer), # of elements in buffer, MPI data type, destination processor, message tag, communicator, pointer to the request)
