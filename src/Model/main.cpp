@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     double total_dt_time= 0.0;
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(90,30); //Note: seems to be distortion in lattice if subdomains are not square, since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(90,30); //NOTE: especially when use external potential, seems subdomains must be square to avoid blowup, Note: seems to be distortion in lattice if subdomains are not square, since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize;
     subsystemSize[0] = Total_systemSize[0]/(nprocs-1);  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //MUST CHANGE THIS TO /nprocs when do 2D parallelization
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
     int StatSample_freq = 10;
 
-    int N_time_steps = 10000; //number of time steps
+    int N_time_steps = 500000; //number of time steps
 
     //for NVT ensemble
     int N_steps = 1;  //number of steps over which to gradually rescale velocities: has to be large enough to prevent instability
@@ -100,8 +100,8 @@ int main(int argc, char **argv)
 
         //setup external potential--> object extPotential is decleare as public member of system
         system.extPotential.position = Total_systemSize/2.;   //for now just put in middle
-        system.extPotential.setMax(300.);  //600+ blows up, 300 is stable
-        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(3*sigma));  //set to sigma? for now
+        system.extPotential.setMax(100.);  //200 blows up after ~17k timesteps, when use 50, the potential's effect is almost not visible but run is stable...
+        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(3*sigma));  //set to 3sigma? for now
     }
 
     //create_MPI_ATOM();
@@ -204,10 +204,24 @@ int main(int argc, char **argv)
         if(timestep % 100 ==0){
             if(my_id ==0){
                 fprintf(movie,"%d \n", NumGlobal);
-                fprintf(movie,"%11.3f \n",timestep);
+                fprintf(movie,"%11.3f \n",timestep);  //comment line
+
+                int num=0;
+                for(int i=0;i<nprocs;i++){
+                    for(int j =0;j<NumInBox_array[i];j++){
+                        fprintf(movie, "H \t %11.3f \t %11.3f \t %d \n",Allpositions[num+2*j],Allpositions[num+2*j+1],i);  //this i will output the proc which each atom is a part of
+                    }
+                    num += 2*NumInBox_array[i];  //keeps track of start locations for elements belonging to next proc
+                }
+
+
+                /*
                 for(int i =0;i<NumGlobal;i++){
                     fprintf(movie, "H \t %11.3f \t %11.3f \n",Allpositions[2*i],Allpositions[2*i+1]);
                 }
+                */
+
+
                 delete [] Allpositions;
             }
         }

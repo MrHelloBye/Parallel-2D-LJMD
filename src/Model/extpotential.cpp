@@ -2,6 +2,7 @@
 #include "extpotential.h"
 #include "vec2.h"
 #include <cmath>
+#include "system.h"
 
 
 
@@ -25,7 +26,7 @@ vec2 ExtPotential::getForcefromPotential(vec2 atomPosition, double skin_cutoff_s
 
     double radiusSqrd = displacement.lengthSquared();
 
-    if(radiusSqrd > 2*skin_cutoff_sqrd ) force.set(0,0);       //no force felt
+    if(radiusSqrd > 2*skin_cutoff_sqrd ) force.set(0,0);       //  NOTE: if use only skin_cutoffsqrd = 3 sigma for cutoff, then blows up..., no force felt beyond cutoff
     else force = (max*exp(-radiusSqrd/twostdevSqrd)/radiusSqrd)*displacement;  //is positive b/c assume repulsive force
 
     return force;
