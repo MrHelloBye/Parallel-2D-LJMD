@@ -25,8 +25,8 @@ vec2 ExtPotential::getForcefromPotential(vec2 atomPosition, double skin_cutoff_s
 
     double radiusSqrd = displacement.lengthSquared();
 
-    if(radiusSqrd > skin_cutoff_sqrd ) force.set(0,0);       //no force felt
-    else force = max*exp(-radiusSqrd/twostdevSqrd)*displacement;  //is positive b/c assume repulsive force
+    if(radiusSqrd > 2*skin_cutoff_sqrd ) force.set(0,0);       //no force felt
+    else force = (max*exp(-radiusSqrd/twostdevSqrd)/radiusSqrd)*displacement;  //is positive b/c assume repulsive force
 
     return force;
 

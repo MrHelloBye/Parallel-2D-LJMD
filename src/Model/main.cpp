@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     double total_dt_time= 0.0;
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(90,30); //since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(90,30); //Note: seems to be distortion in lattice if subdomains are not square, since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize;
     subsystemSize[0] = Total_systemSize[0]/(nprocs-1);  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //MUST CHANGE THIS TO /nprocs when do 2D parallelization
@@ -100,8 +100,8 @@ int main(int argc, char **argv)
 
         //setup external potential--> object extPotential is decleare as public member of system
         system.extPotential.position = Total_systemSize/2.;   //for now just put in middle
-        system.extPotential.setMax(1.);
-        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(sigma));  //set to sigma? for now
+        system.extPotential.setMax(300.);  //600+ blows up, 300 is stable
+        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(3*sigma));  //set to sigma? for now
     }
 
     //create_MPI_ATOM();
@@ -128,6 +128,9 @@ int main(int argc, char **argv)
 
     for(int timestep=0; timestep< N_time_steps; timestep++) {
         if(my_id != 0){
+
+            //system.extPotential.position = GET POSITIONS FROM CONTROLLER
+
             system.step(dt);  //only do timestepping for non-root procs
 
 

@@ -116,6 +116,8 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
         //add force due to external potential
         current_atom->force += system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd);
 
+        //std::cout << "force form ext potential" << system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd) <<std::endl;
+
         
         //remember if atom needs to be considered as ghost atom for neighboring processors
         if (current_atom->position[decomp_dim] < l_skin_bndry) {
