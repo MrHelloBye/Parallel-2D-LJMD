@@ -96,11 +96,12 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
             if(radiusSqrd > skin_cutoff_sqrd ) continue;  //cutoff radius and if 2 particles are too close, don't compute the force to prevent blowup
 
-            double radius = sqrt(radiusSqrd);
-            double sigma_over_radius = m_sigma/radius;
+            //double radius = sqrt(radiusSqrd);
+            //double sigma_over_radius = m_sigma/radius;
 
             //find and set force components
-            double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
+            double total_force_over_r = 24.*(2.0*pow(radiusSqrd,-7.)-pow(radiusSqrd,-4.));
+            //double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
             //ATTRACTIVE FORCE SHOULD POINT TOWARDS OTHER ATOM. REPULSIVE AWAY FROM OTHER ATOM!!
             for(int j=0;j<2;j++) {
                 current_atom->force[j] += total_force_over_r*displacement[j]; //i.e. Fx = (F/r)*x
@@ -109,12 +110,12 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
             if(system.steps() % system.m_sample_freq ==0){
                 //calculate potential energy every m_sample_freq steps
-                m_potentialEnergy += 4.*(pow(radius,-12.)-pow(radius,-6));
+                m_potentialEnergy += 4.*(pow(radiusSqrd,-6.)-pow(radiusSqrd,-3));
             }
         }//end of inner loop
 
         //add force due to external potential
-        current_atom->force += system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd);
+        //current_atom->force += system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd);
 
         //std::cout << "force form ext potential" << system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd) <<std::endl;
 
@@ -221,9 +222,9 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
                      if(radiusSqrd > skin_cutoff_sqrd ) continue;
 
-                     double radius = sqrt(radiusSqrd);
-                     double sigma_over_radius = m_sigma/radius;
-                     double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
+                     //double radius = sqrt(radiusSqrd);
+                     //double sigma_over_radius = m_sigma/radius;
+                     double total_force_over_r = 24.*(2.0*pow(radiusSqrd,-7.)-pow(radiusSqrd,-4.));
 
                      //find and set force components
                      for(int j=0;j<2;j++) {
@@ -232,7 +233,7 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
                          //WE DO NOT want to update the force on other_atom here, b/c it is a ghost atom...--> outside of the system
                      }
 
-                     if(system.steps() % system.m_sample_freq ==0) m_potentialEnergy += 4.*(pow(radius,-12.)-pow(radius,-6));
+                     if(system.steps() % system.m_sample_freq ==0) m_potentialEnergy += 4.*(pow(radiusSqrd,-6.)-pow(radiusSqrd,-3));
                  }
              }else if(current_atom->position[decomp_dim] > r_skin_bndry){
 
@@ -256,9 +257,9 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
                      double radiusSqrd = displacement.lengthSquared();
                      if(radiusSqrd > skin_cutoff_sqrd ) continue;
 
-                     double radius = sqrt(radiusSqrd);
-                     double sigma_over_radius = m_sigma/radius;
-                     double total_force_over_r = 24.*(2.0*pow(radius,-14.)-pow(radius,-8.));
+                     //double radius = sqrt(radiusSqrd);
+                     //double sigma_over_radius = m_sigma/radius;
+                     double total_force_over_r = 24.*(2.0*pow(radiusSqrd,-7.)-pow(radiusSqrd,-4.));
 
                      //find and set force components
                      for(int j=0;j<2;j++) {
@@ -267,12 +268,12 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
                          //WE DO NOT want to update the force on other_atom here, b/c it is a ghost atom...--> outside of the system
                      }
 
-                     if(system.steps() % system.m_sample_freq ==0) m_potentialEnergy += 4.*(pow(radius,-12.)-pow(radius,-6));
+                     if(system.steps() % system.m_sample_freq ==0) m_potentialEnergy += 4.*(pow(radiusSqrd,-6.)-pow(radiusSqrd,-3));
                  }
              }
          }//end of outer loop
 
-         //clear the vectors
+         //clear the vectors, not clearing these doesn't seem to improve timing
          from_left.clear();
          from_right.clear();
          to_left.clear();
@@ -280,6 +281,7 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
 
          Atomsto_right.clear();
          Atomsto_left.clear();
+
 
          //MPI_Barrier(MPI_COMM_WORLD);
      }//end of if(nprocs>1)

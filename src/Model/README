@@ -10,4 +10,5 @@ Note: Processor 0 is used as the master for gathering data from other processors
 
 Note: For stability, each processor's domain must be larger than twice the cutoff radius.
 
-The current geometry (90x30) works well with 5 domains (6 processors).
+The current geometry (90x30) works with at most 5 domains (6 processors) (stable for ~150k steps).
+Lower number of domains allows to run >1million steps with stability.

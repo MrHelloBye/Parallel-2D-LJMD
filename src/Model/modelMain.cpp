@@ -129,16 +129,15 @@ int modelMain(int argc, char **argv)
 
             system.step(dt);  //only do timestepping for non-root procs
 
-            /* Not needed unless want to analyze things
+
             //use sampler to calculate system parameters periodically
             if(timestep % system.m_sample_freq ==0){
                 statisticsSampler.sample(system);
             }
-            */
-
 
             //periodically rescale Velocities to keep T constant (NVT ensemble)
             if(timestep % 100 == 0){
+                statisticsSampler.sampleKineticEnergy(system); //temperature sampling uses KE
                 statisticsSampler.sampleTemperature(system); //sample temperature, so can rescale as often as we want
                 currentTemperature = statisticsSampler.temperature();  //this gets the value of temperature member variable
                 //Note: initial temperature is the desired temperature here

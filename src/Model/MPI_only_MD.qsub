@@ -1,0 +1,11 @@
+#!/bin/bash --login
+#PBS -l nodes=6:ppn=1
+#PBS -l walltime=00:10:00
+#PBS -j oe
+#PBS -N MD	
+
+module load GNU/6.2
+cd ${PBS_O_WORKDIR}
+export OMP_NUM_THREADS=1
+mpirun -np 6 MPI-md
+qstat -f ${PBS_JOBID}
