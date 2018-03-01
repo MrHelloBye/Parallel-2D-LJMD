@@ -7,7 +7,7 @@
 //by using StatisticsSampler class. Output can be made in SI of Lennard Jones units by using UnitConverter class.
 //The frequency of output can be varied as desired. Of course, less frequent output, makes the program run faster.
 
-//Author: Timofey Golubev with help of Xukun Xiang based on the code found at https://github.com/andeplane/molecular-dynamics-fys3150.
+//Author: Timofey Golubev with help of Xukun Xiang based on the non-parallelized code found at https://github.com/andeplane/molecular-dynamics-fys3150.
 
 #include "global.h"
 #include "random.h"
@@ -25,6 +25,7 @@
 #include <stdio.h> //for printf
 #include <mpi.h>  //get the mpi functions from here
 #include "extpotential.h"
+//#include <omp.h>
 
 
 using namespace std;
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
 
     int StatSample_freq = 10;
 
-    int N_time_steps = 500000; //number of time steps
+    int N_time_steps = 10000; //number of time steps
 
     //for NVT ensemble
     int N_steps = 1;  //number of steps over which to gradually rescale velocities: has to be large enough to prevent instability
@@ -99,9 +100,9 @@ int main(int argc, char **argv)
         system.removeTotalMomentum();
 
         //setup external potential--> object extPotential is decleare as public member of system
-        system.extPotential.position = Total_systemSize/2.;   //for now just put in middle
-        system.extPotential.setMax(100.);  //200 blows up after ~17k timesteps, when use 50, the potential's effect is almost not visible but run is stable...
-        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(3*sigma));  //set to 3sigma? for now
+        system.extPotential.position.set(5.,system.systemSize(1)/2);
+        system.extPotential.setMax(200.);  //200 is stable when use 1sigma for stdev
+        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(1*sigma));
     }
 
     //create_MPI_ATOM();
@@ -126,10 +127,15 @@ int main(int argc, char **argv)
 
     high_resolution_clock::time_point start2 = high_resolution_clock::now();
 
+
     for(int timestep=0; timestep< N_time_steps; timestep++) {
         if(my_id != 0){
 
-            //system.extPotential.position = GET POSITIONS FROM CONTROLLER
+            //move around the ext Potential for testing
+            if(timestep % 10 == 0){
+                if(system.extPotential.position[0] < 85) system.extPotential.position[0] += 0.1;         //GET POSITIONS FROM CONTROLLER
+                if(my_id == 1) cout << "potential position" << system.extPotential.position[0] <<std::endl;
+            }
 
             system.step(dt);  //only do timestepping for non-root procs
 
@@ -201,8 +207,10 @@ int main(int argc, char **argv)
         //MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype recvtype, int root, MPI_Comm comm)
         MPI_Gatherv(&positions[0], 1, stype, Allpositions, rcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
+        
         if(timestep % 100 ==0){
             if(my_id ==0){
+
                 fprintf(movie,"%d \n", NumGlobal);
                 fprintf(movie,"%11.3f \n",timestep);  //comment line
 
@@ -219,12 +227,14 @@ int main(int argc, char **argv)
                 for(int i =0;i<NumGlobal;i++){
                     fprintf(movie, "H \t %11.3f \t %11.3f \n",Allpositions[2*i],Allpositions[2*i+1]);
                 }
-                */
+		*/
+
 
 
                 delete [] Allpositions;
             }
         }
+        
     }//end of for loop
 
     if(my_id ==0) fclose(movie);

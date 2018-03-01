@@ -24,6 +24,7 @@
 #include <time.h>
 #include <stdio.h> //for printf
 #include <mpi.h>  //get the mpi functions from here
+#include "extpotential.h"
 
 #include "../comms.hpp"
 #include "../Controller/controllerState.hpp"
@@ -59,13 +60,14 @@ int modelMain(int argc, char **argv)
 
     int StatSample_freq = 10;
 
-    int N_time_steps = 10000; //number of time steps
+    int N_time_steps = 200000; //number of time steps
 
     //for NVT ensemble
     int N_steps = 1;  //number of steps over which to gradually rescale velocities: has to be large enough to prevent instability
     //using the more basic thermostat of sharp rescaling every 100 steps
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------
+
     //Initialize MD units
     UnitConverter::initializeMDUnits(sigma, epsilon);
     //double mass = UnitConverter::massFromSI(6.63352088e-26); // mass in kg
@@ -89,14 +91,16 @@ int modelMain(int argc, char **argv)
         system.potential().setSigma(UnitConverter::lengthFromAngstroms(sigma));      //i.e. LJ atom/particle diameter,
         system.m_sample_freq=100; //statistics sampler freq.
         system.removeTotalMomentum();
-    }
 
-    //create_MPI_ATOM();
+        //setup external potential--> object extPotential is decleare as public member of system
+        system.extPotential.position.set(5.,system.systemSize(1)/2);
+        system.extPotential.setMax(200.);  //200 is stable when use 1sigma for stdev
+        system.extPotential.setStdev(UnitConverter::lengthFromAngstroms(1*sigma));
+    }
 
     StatisticsSampler statisticsSampler;
 
     FILE *movie;
-    //IO movie("movie.xyz");
 
     if(my_id != 0){
         cout << setw(20) << "Timestep" <<
@@ -117,13 +121,20 @@ int modelMain(int argc, char **argv)
 
     for(int timestep=0; timestep< N_time_steps; timestep++) {
         if(my_id != 0){
+            //use controller state to adjust external potential
+           if(timestep % 10 == 0){
+               system.extPotential.position[0] = controllerState.cursorPos[0];
+               system.extPotential.position[1] = controllerState.cursorPos[1];
+           }
+
             system.step(dt);  //only do timestepping for non-root procs
 
-
+            /* Not needed unless want to analyze things
             //use sampler to calculate system parameters periodically
             if(timestep % system.m_sample_freq ==0){
                 statisticsSampler.sample(system);
             }
+            */
 
 
             //periodically rescale Velocities to keep T constant (NVT ensemble)
@@ -153,7 +164,8 @@ int modelMain(int argc, char **argv)
             comms_recvControllerState(&controllerState);
         }
 
-    }//end of for loop
+
+    }
 
     //timing
     high_resolution_clock::time_point finish2 = high_resolution_clock::now();
