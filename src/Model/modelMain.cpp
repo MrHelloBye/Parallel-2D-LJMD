@@ -124,8 +124,8 @@ int modelMain(int argc, char **argv)
             //use controller state to adjust external potential
            if(timestep % 10 == 0){
                //Note: controller positions are in range -1 to 1
-               system.extPotential.position[0] = (controllerState.cursorPos[0] + 1)*0.5*system.systemSize();
-               system.extPotential.position[1] = (controllerState.cursorPos[1] +1)*0.5*system.systemSize();
+               system.extPotential.position[0] = (controllerState.cursorPos[0] + 1)*0.5*system.systemSize(0);
+               system.extPotential.position[1] = (controllerState.cursorPos[1] +1)*0.5*system.systemSize(1);
            }
 
             system.step(dt);  //only do timestepping for non-root procs
