@@ -85,7 +85,13 @@ int Controller::readState(float dt){
 	  state.cursorPos[1]  =-1;
     }
 
-    state.trigger = rightTrigger;
+    state.trigger += dt*( (rightTrigger+1)*0.5 -(leftTrigger+1)*0.5);
+
+    if(state.trigger > 1){
+      state.trigger = 1;
+    } else if(state.trigger < -1){
+      state.trigger = -1;
+    }
 
     //**************************************************
     //Check the Buttons
@@ -106,6 +112,19 @@ int Controller::readState(float dt){
 
     leftBumper = axes[6];
     rightBumper = axes[7];
+
+    if(leftBumper == GLFW_PRESS){
+      state.bumper -= dt;
+    }
+    if(rightBumper == GLFW_PRESS){
+      state.bumper += dt;
+    }
+
+    if(state.bumper > 1){
+      state.bumper = 1;
+    } else if(state.bumper < -1){
+      state.bumper = -1;
+    }
 
     leftStick = axes[13];
     rightStick = axes[14];

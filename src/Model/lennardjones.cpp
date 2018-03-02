@@ -115,7 +115,7 @@ void LennardJones::calculateForces(System &system)  //object system is passed by
         }//end of inner loop
 
         //add force due to external potential
-        //current_atom->force += system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd);
+        current_atom->force += system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd);
 
         //std::cout << "force form ext potential" << system.extPotential.getForcefromPotential(current_atom->position, skin_cutoff_sqrd) <<std::endl;
 

@@ -126,6 +126,12 @@ int modelMain(int argc, char **argv)
                //Note: controller positions are in range -1 to 1
                system.extPotential.position[0] = (controllerState.cursorPos[0] + 1)*0.5*system.systemSize()[0];
                system.extPotential.position[1] = (controllerState.cursorPos[1] +1)*0.5*system.systemSize()[1];
+
+               system.extPotential.setMax(
+                   200. + 200*controllerState.bumper);  //200 is stable when use 1sigma for stdev
+               system.extPotential.setStdev(
+                   UnitConverter::lengthFromAngstroms(
+                     (2 + 1.5*controllerState.trigger)*sigma));
            }
 
             system.step(dt);  //only do timestepping for non-root procs

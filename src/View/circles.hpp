@@ -69,16 +69,22 @@ class Circles
     Circles(GLfloat radius, GLint numVertices, GLint numCircles,bool drawInstanced=false);
     ~Circles();
 
+    //Manipulating vertices
+    void setRadius(float radius);
+
     //Manipulating positions
     void setPosLattice();
     void setPos(float *newPos);
     void setEPos(float *newPos);
     void movePos(GLfloat dx, GLfloat dy);
 
+
     //Manipulating colors
     void setColorsID();
     void setColors(GLfloat *newColors);
     void setHues(GLfloat *newHues);
+
+    void setHSLs(GLfloat *newHSLs);
 
     void setPosAndHues(float *newPos,float *Hues,int newSize);
 

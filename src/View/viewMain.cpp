@@ -115,8 +115,8 @@ int viewMain(int argc,char** argv)
   printf("OpenGL version supported %s\n", version);
 
   // During init, enable debug output
-  glEnable              ( GL_DEBUG_OUTPUT );
-  glDebugMessageCallback( (GLDEBUGPROC) MessageCallback, 0 );
+  //glEnable              ( GL_DEBUG_OUTPUT );
+  //glDebugMessageCallback( (GLDEBUGPROC) MessageCallback, 0 );
 
   //--------------------------------------------------------//
   //Initialize the circles, give them colors based on ID,
@@ -182,6 +182,9 @@ int viewMain(int argc,char** argv)
     //Send controller data
     controller.readState(dt);
     cursor.setEPos(state.cursorPos);
+    cursor.setRadius(0.02 + 0.015*state.trigger);
+    float newHSL[] = { 180*(1+state.bumper),.75,.75}; 
+    cursor.setHSLs(newHSL);
     controller.commState();
 
 

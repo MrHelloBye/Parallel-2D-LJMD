@@ -305,6 +305,17 @@ Circles::~Circles(){
 }
 
 /*********************************************************************
+ * Manipulating vertices
+ *********************************************************************/
+void Circles::setRadius(float radius){
+  this->radius = radius;
+
+  verticesFan();
+
+  updateVerticesBuffer();
+}
+
+/*********************************************************************
  * Manipulating positions
  *********************************************************************/
 void Circles::setPosLattice(){
@@ -411,6 +422,18 @@ void Circles::setPosAndHues(float* newPos,float* newHues, int newSize)
   setHues(newHues);
 }
 
+void Circles::setHSLs(float* newHSLs)
+{
+  float rgb[3];
+  for(int i = 0; i < numCircles; i++){
+    hsl_to_rgb(rgb,newHSLs+i*3);
+    for(int j =0; j < 3; j++){
+      colors[i*3+j] = rgb[j];
+    }
+  }
+
+  updateColorsBuffer();
+}
 
 /*********************************************************************
  * Draw the Circles

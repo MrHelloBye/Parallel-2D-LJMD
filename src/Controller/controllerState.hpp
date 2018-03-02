@@ -6,6 +6,7 @@
 struct ControllerState{
   float cursorPos[2] = {0,0};
   float trigger =0;
+  float bumper =0;
   unsigned int reset = false;
 
   friend std::ostream& operator<< (std::ostream& out, const ControllerState& state); 

@@ -120,12 +120,12 @@ int comms_bcastControllerState(ControllerState* state){
 
 
   if(stateType == 0){
-    int count = 3;//3 variables
-    int blockLengths[] = {2,1,1};
-    MPI_Aint displs[] = {0,2*sizeof(float),3*sizeof(float)};
-    MPI_Datatype types[] = {MPI_FLOAT,MPI_FLOAT,MPI_UNSIGNED};
+    int count = 4;//number of variables
+    int blockLengths[] = {2,1,1,1};
+    MPI_Aint displs[] = {0,2*sizeof(float),3*sizeof(float),4*sizeof(float)};
+    MPI_Datatype types[] = {MPI_FLOAT,MPI_FLOAT,MPI_FLOAT,MPI_UNSIGNED};
 
-    MPI_Type_create_struct(3, blockLengths, displs, types, &stateType);
+    MPI_Type_create_struct(count, blockLengths, displs, types, &stateType);
     MPI_Type_commit(&stateType);
   }
 
