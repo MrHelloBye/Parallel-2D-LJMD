@@ -11,7 +11,7 @@ class Controller{
   public:
     Controller();
 
-    int readState();
+    int readState(float);
     int commState();
 
     ControllerState& getState(){return state;}

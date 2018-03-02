@@ -72,6 +72,7 @@ class Circles
     //Manipulating positions
     void setPosLattice();
     void setPos(float *newPos);
+    void setEPos(float *newPos);
     void movePos(GLfloat dx, GLfloat dy);
 
     //Manipulating colors

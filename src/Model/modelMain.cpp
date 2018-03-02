@@ -50,7 +50,7 @@ int modelMain(int argc, char **argv)
     double total_dt_time= 0.0;
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(90,30); //since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(36,36); //since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize;
     subsystemSize[0] = Total_systemSize[0]/(nprocs-1);  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //MUST CHANGE THIS TO /nprocs when do 2D parallelization
@@ -143,7 +143,7 @@ int modelMain(int argc, char **argv)
                         setw(20) << "proc" << my_id <<
                         setw(20) << statisticsSampler.potentialEnergy() <<
                         setw(20) << statisticsSampler.totalEnergy() << endl;*/
-                cout<<"Model: " <<my_id<<" Controller: "<<controllerState<<endl;
+                //cout<<"Model: " <<my_id<<" Controller: "<<controllerState<<endl;
             }
 
             //Send the model data to the view (root)

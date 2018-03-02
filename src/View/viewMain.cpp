@@ -29,6 +29,20 @@ void initShaders(GLuint&);
 
 #define CIRCLE_SPEED 0.1
 
+void MessageCallback( GLenum source,
+                      GLenum type,
+                      GLuint id,
+                      GLenum severity,
+                      GLsizei length,
+                      const GLchar* message,
+                      const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
+
 int viewMain(int argc,char** argv)
 {
   int nprocs;
@@ -72,7 +86,7 @@ int viewMain(int argc,char** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   }
 
-  GLFWwindow* window = glfwCreateWindow(500, 500, "Particle Demo", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(800, 500, "Particle Demo", NULL, NULL);
   if (!window)
     fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 
@@ -91,11 +105,18 @@ int viewMain(int argc,char** argv)
   }
   fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
+
+
+
   // get version info
   const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
   const GLubyte* version = glGetString(GL_VERSION); // version as a string
   printf("Renderer: %s\n", renderer);
   printf("OpenGL version supported %s\n", version);
+
+  // During init, enable debug output
+  glEnable              ( GL_DEBUG_OUTPUT );
+  glDebugMessageCallback( (GLDEBUGPROC) MessageCallback, 0 );
 
   //--------------------------------------------------------//
   //Initialize the circles, give them colors based on ID,
@@ -103,9 +124,12 @@ int viewMain(int argc,char** argv)
   const int INIT_NUM_CIRCLES = 100;
 
   int numAtoms = INIT_NUM_CIRCLES;
-  Circles circles(0.01, 120,numAtoms,drawInstanced);
+  Circles circles(0.01, 12,numAtoms,drawInstanced);
   circles.setColorsID();
   circles.setPosLattice();
+  Circles cursor(0.01, 12, 1,drawInstanced);
+  GLfloat clrDum[] ={1,1,1};
+  cursor.setColors(clrDum);
 
 
   //MPI Buffers
@@ -115,6 +139,7 @@ int viewMain(int argc,char** argv)
   int atomCounts[nprocs];
 
   Controller controller;
+  ControllerState& state=controller.getState();
 
 
   int width, height;
@@ -145,7 +170,7 @@ int viewMain(int argc,char** argv)
 
     if(t - t_lastControllerEcho > 1.0){
       t_lastControllerEcho = t;
-      std::cout <<"View's Controller: "<< controller.getState()<<std::endl;
+      //std::cout <<"View's Controller: "<< state<<std::endl;
     }
 
     //Move Positions
@@ -155,7 +180,8 @@ int viewMain(int argc,char** argv)
     comms_gatherModelData(&pos_buf,&hue_buf,atomCounts,numAtoms);
 
     //Send controller data
-    controller.readState();
+    controller.readState(dt);
+    cursor.setEPos(state.cursorPos);
     controller.commState();
 
 
@@ -163,6 +189,7 @@ int viewMain(int argc,char** argv)
 
     //Draw the circles 
     circles.draw();
+    cursor.draw();
 
     // put the stuff we've been drawing onto the display
     glfwSwapBuffers(window);

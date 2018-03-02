@@ -76,7 +76,7 @@ int comms_gatherModelData(float** pos_buf,float** hue_buf,int* atomCounts,int& n
       displs[i] = displs[i-1]+rcounts[i-1];
     }
   }
-  
+
   //WARNING pos is assumed big enough
   if(numAtoms!=num_total){
     delete *pos_buf;
@@ -87,14 +87,15 @@ int comms_gatherModelData(float** pos_buf,float** hue_buf,int* atomCounts,int& n
     numAtoms = num_total;
   }
 
+  int h = 0;
   for(int proc = 1; proc < nprocs; proc++){
-    for( int i =0; i < atomCounts[proc]; i++){
-      (*hue_buf)[i+displs[proc]] = proc*360./nprocs;
+    //Skip root: no particles there
+    for( int i =0; i < atomCounts[proc]; i++,h++){
+      (*hue_buf)[h] = (proc-1)*360./(nprocs-1);
     }
   }
 
   MPI_Gatherv(NULL,0,MPI_FLOAT, *pos_buf, rcounts, displs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
   return 0;
 }
 
@@ -123,7 +124,7 @@ int comms_bcastControllerState(ControllerState* state){
     int blockLengths[] = {2,1,1};
     MPI_Aint displs[] = {0,2*sizeof(float),3*sizeof(float)};
     MPI_Datatype types[] = {MPI_FLOAT,MPI_FLOAT,MPI_UNSIGNED};
-    
+
     MPI_Type_create_struct(3, blockLengths, displs, types, &stateType);
     MPI_Type_commit(&stateType);
   }
