@@ -8,4 +8,7 @@ To run from terminal on Linux (must have OpenMPI installed)
 
 Note: Processor 0 is used as the master for gathering data from other processors and output. It does not perform any MD calculations. # of subdomains = # of processors - 1 
 
-Note: For stability, each processor's domain must be approximately square and larger than the cutoff radius.
+Note: For stability, each processor's domain must be larger than twice the cutoff radius.
+
+The current geometry (90x30) works with at most 5 domains (6 processors) (stable for ~150k steps).
+Lower number of domains allows to run >1million steps with stability.

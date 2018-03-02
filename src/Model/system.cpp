@@ -40,7 +40,6 @@ void System::applyPeriodicBoundaryConditions() {
                 atom->num_bndry_crossings[j] += 1;    //crossing right or top boundary is counted as +1 crossing
             }
         }
-        std::cout <<"syssize in pbc" << m_systemSize[0] <<" " <<m_systemSize[1] <<std::endl;
     }
 }
 
@@ -48,18 +47,12 @@ void System::applyMirrorBCs(double dt){
     for(Atom *atom : atoms()) {
         for(int j = 0;j<2;j++){
             if (atom->position[j] <  0. ) {
-                //we go back to the previous x position, and keep the y position
-                //also we reverse sign on X component of velocity
-                // std::cout << "test mirror bc's BEFORE mirroring" << atom->position[0] <<"time step" << steps() << std::endl;
+                //we go back to the previous x position, and keep the y position also we reverse sign on X component of velocity
                 atom->position[j] -=dt*atom->velocity[j];
-                //atom->position[0] = 0.01;  //POOR MAN'S mirror BCs
-                // std::cout << "test mirror bc's" << atom->position[0] <<std::endl; // not working properly it seems--> after mirroring, stll have negative positoin...
                 atom->velocity[j] = - atom->velocity[j];
             }
             if(atom->position[j] >  m_systemSize[j]){
-                // atom->position[j] = m_systemSize[j] -0.01;  //POOR MAN'S mirror BCs
                 atom->position[j] -=dt*atom->velocity[j];
-                // std::cout << "test mirror bc's" << atom->position[0] <<std::endl; // not working properly it seems--> after mirroring, stll have negative positoin...
                 atom->velocity[j] = - atom->velocity[j];
             }
         }
@@ -81,7 +74,6 @@ void System::rescaleVelocities(StatisticsSampler &statisticsSampler, double curr
 void System::removeTotalMomentum() {
     // Find the total momentum and remove momentum equally on each atom so the total momentum becomes zero.
     vec2 total_momentum;
-    //double mass;
     for(Atom *atom : atoms()) { //c++11 way of iterating through  entire vector or array
         total_momentum += mass*atom->velocity;
     }
@@ -109,7 +101,6 @@ void System::removeTotalMomentum() {
 void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double latticeConstant, double temperature, double mass, vec2 subsystemOrigin) {
 
     double x;
-    //each processor finds out what it's ID (AKA rank) is and how many processors there are
     int nprocs, rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);   //find ID
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);  //find # of processors
@@ -121,10 +112,8 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
         double y = 0.5*latticeConstant;
 
         for(int j=0;j<subsystemSize[1];j++){
-
                 Atom *atom = new Atom(mass); //uses mass already converted to LJ units in main //* atom means create a pointer --> atom is a pointer
                 //equivalent to: Atom *atom;  atom = new Atom(..);  //declare a pointer and have it point to new Atom object
-
                 atom->setInitialPosition(x,y);
                 atom->num_bndry_crossings.set(0.,0.);   //make sure initial # of bndry crossings is 0
                 atom->resetVelocityMaxwellian(temperature);
@@ -136,12 +125,8 @@ void System::createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double l
 
     //this sets the TOTAL system size--> is used for PBCs which are at the outer boundaries
     setSystemSize(latticeConstant*Total_systemSize ); //system size set by multiply vec2 # of unit cells by latticeConstant
-    //vec2 include_bndry(0.001,0.001);  //will add to SystemSize so include bndry for domain distributions among processors in SimSize
-    setSimSize(Total_systemSize*latticeConstant);
-    //setSimSize(Total_systemSize*latticeConstant + include_bndry);
     std::cout<<"system size = " << m_systemSize <<std::endl;
     std::cout<<"num_atoms = " << num_atoms() <<std::endl;
-
     setSubSystemSize(latticeConstant*subsystemSize);
 }
 

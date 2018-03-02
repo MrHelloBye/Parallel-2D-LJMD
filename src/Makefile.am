@@ -1,5 +1,5 @@
 
-modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMain.cpp Model/send_atoms.cpp Model/statisticssampler.cpp Model/system.cpp Model/unitconverter.cpp Model/vec2.cpp Model/velocityverlet.cpp 
+modelSources = Model/atom.cpp Model/io.cpp Model/lennardjones.cpp Model/modelMain.cpp Model/send_atoms.cpp Model/statisticssampler.cpp Model/system.cpp Model/unitconverter.cpp Model/vec2.cpp Model/velocityverlet.cpp Model/extpotential.cpp
 
 if WITH_VIEW
 viewSources = View/circles.cpp View/loadShaders.cpp View/viewMain.cpp View/hsl_to_rgb.cpp Controller/controller.cpp Controller/controllerState.cpp

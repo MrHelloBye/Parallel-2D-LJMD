@@ -7,6 +7,7 @@
 #include "lennardjones.h"
 #include "statisticssampler.h"
 #include <map>  //need for the map c++ container
+#include "extpotential.h"
 
 class System
 {
@@ -23,11 +24,13 @@ private:
     int m_steps = 0;
     int m_num_atoms;
 
+
 public:
 
     System();
     ~System();
     int m_sample_freq;
+    ExtPotential extPotential;
     void createFCCLattice(vec2 Total_systemSize, double latticeConstant, double temperature,  double mass);
     void createSCLattice(vec2 Total_systemSize, vec2 subsystemSize, double latticeConstant, double temperature,  double mass, vec2 subsystemOrigin);
     void createRandomPositions(int num_particles, double side_length, double temperature,  double mass);

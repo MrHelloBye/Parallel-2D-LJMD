@@ -11,7 +11,7 @@ using namespace std;
 */
 void send_atoms(System *system) {
 
-        vec2 sim_size = system->simSize(); //returns total simulation size, needed for finding which proc atoms belong to.
+        //vec2 sim_size = system->simSize(); //returns total simulation size, needed for finding which proc atoms belong to.
         //NOTE: sim_size is just slightly larger than systemSize in order to include the atoms on the system edges
         int decomp_dim = 0;  // 0 or 1, x or y direction of decomposition
 
@@ -42,7 +42,7 @@ void send_atoms(System *system) {
 	int proc_to;
         for (int i=0; i!=system->num_atoms(); ++i) {   //-> are used b/c
 		// calculate the processor for each atom
-                proc_to = floor(system->atoms(i)->position[decomp_dim]/ sim_size[decomp_dim] * (nprocs-1));
+                proc_to = floor(system->atoms(i)->position[decomp_dim]/ system->systemSize(decomp_dim) * (nprocs-1));
 
                 if (proc_to == (rank -1- 1 + nprocs-1) % (nprocs-1)) {
                         num_to_left++;
