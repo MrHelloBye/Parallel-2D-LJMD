@@ -51,7 +51,7 @@ int modelMain(int argc, char **argv)
     double total_dt_time= 0.0;
 
     //all variables will be defined in EACH processor
-    vec2 Total_systemSize(90,30); //since using SC lattice--> just gives # of atoms in each dimension
+    vec2 Total_systemSize(36,36); //since using SC lattice--> just gives # of atoms in each dimension
     vec2 subsystemSize;
     subsystemSize[0] = Total_systemSize[0]/(nprocs-1);  //1D parallelization along x
     subsystemSize[1] = Total_systemSize[1]; //MUST CHANGE THIS TO /nprocs when do 2D parallelization
@@ -124,8 +124,9 @@ int modelMain(int argc, char **argv)
             //use controller state to adjust external potential
            if(timestep % 10 == 0){
                //Note: controller positions are in range -1 to 1
-               system.extPotential.position[0] = (controllerState.cursorPos[0] + 1)*0.5*system.systemSize(0);
-               system.extPotential.position[1] = (controllerState.cursorPos[1] +1)*0.5*system.systemSize(1);
+               system.extPotential.position[0] = (controllerState.cursorPos[0] + 1)*0.5*system.systemSize()[0];
+               system.extPotential.position[1] = (controllerState.cursorPos[1] +1)*0.5*system.systemSize()[1];
+
            }
 
             system.step(dt);  //only do timestepping for non-root procs
@@ -154,7 +155,7 @@ int modelMain(int argc, char **argv)
                         setw(20) << "proc" << my_id <<
                         setw(20) << statisticsSampler.potentialEnergy() <<
                         setw(20) << statisticsSampler.totalEnergy() << endl;*/
-                cout<<"Model: " <<my_id<<" Controller: "<<controllerState<<endl;
+                //cout<<"Model: " <<my_id<<" Controller: "<<controllerState<<endl;
             }
 
             //Send the model data to the view (root)

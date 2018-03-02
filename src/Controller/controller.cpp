@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <cmath>
 
 #include "controllerState.hpp"
 #include "controller.hpp"
@@ -13,7 +14,7 @@ const char XBONE_CONTROLLER_NAME[] = "Xbox Wireless Controller";
 Controller::Controller(){
   int i;
   for(i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST;i++){
-    int present = glfwJoystickPresent(joystickID);
+    int present = glfwJoystickPresent(i);
     if(present){
       joystickID = i;
 
@@ -38,7 +39,7 @@ Controller::Controller(){
 
 //========================================================================
 //========================================================================
-int Controller::readState(){
+int Controller::readState(float dt){
 
   //Check that there is a joystick
   int present = glfwJoystickPresent(joystickID);
@@ -62,9 +63,27 @@ int Controller::readState(){
 
     dpadX = j_axes[6];
     dpadY = j_axes[7];
+    if(fabs(leftX)<.12){leftX = 0;}
+    if(fabs(leftY)<.12){leftY = 0;}
 
-    state.cursorPos[0] = leftX;
-    state.cursorPos[1] = leftY;
+    state.cursorPos[0] += dt*( leftX);
+    state.cursorPos[1] -= dt*( leftY);
+
+    if(state.cursorPos[0] > 1){ 
+	   state.cursorPos[0]  =1;
+    }
+    else if( state.cursorPos[0] < -1){
+
+	  state.cursorPos[0]  =-1;
+    }
+
+    if(state.cursorPos[1] > 1){ 
+	   state.cursorPos[1]  =1;
+    }
+    else if( state.cursorPos[1] < -1){
+
+	  state.cursorPos[1]  =-1;
+    }
 
     state.trigger = rightTrigger;
 

@@ -338,13 +338,22 @@ void Circles::movePos(GLfloat dx, GLfloat dy)
 void Circles::setPos(float* newPos)
 {
   for(int i = 0; i < numCircles*2; i++){
-    pos[i] = newPos[i]/50-1;
+//	  std::cout<<"ey: "<<i<< " "<<newPos << " "<< newPos[i]<<std::endl;
+    pos[i] = newPos[i]/19-1;
   }
 
   updatePosBuffer();
 }
 
 
+void Circles::setEPos(float* newPos)
+{
+  for(int i = 0; i < numCircles*2; i++){
+    pos[i] = newPos[i];
+  }
+
+  updatePosBuffer();
+}
 
 /*********************************************************************
  * Manipulating Colors
@@ -371,7 +380,7 @@ void Circles::setColorsID(){
 void Circles::setColors(GLfloat* newColors)
 {
   for(int i = 0; i < numCircles*3; i++){
-    colors[i] = colors[i];
+    colors[i] = newColors[i];
   }
 
   updateColorsBuffer();
